@@ -1101,51 +1101,59 @@
     }
 
     .editor-header {
-      /* The 3.4rem left padding leaves room for the floating 36×36
+      /* Single-row layout on mobile: title-input on the left flexes to
+         fill, action buttons on the right are a fixed-width icon strip.
+         The 3rem left padding leaves room for the floating 36×36
          sidebar toggle (which sits at left:12 + width:36 = 48px ≈ 3rem)
-         plus a 6px gutter. The top padding respects the iPhone notch
-         via env(safe-area-inset-top). */
-      padding: calc(env(safe-area-inset-top, 0px) + 0.4rem) 0.5rem 0.35rem 3.4rem;
-      gap: 0.3rem;
+         plus a tiny gutter. Top padding respects the iPhone notch via
+         env(safe-area-inset-top); both paddings are kept to a minimum
+         so the writing area below gets as much room as possible. */
+      padding: calc(env(safe-area-inset-top, 0px) + 0.25rem) 0.5rem 0.25rem 3rem;
+      gap: 0.4rem;
+      flex-direction: row;
+      align-items: center;
+    }
+
+    .title-row {
+      flex: 1 1 auto;
+      min-width: 0;
     }
 
     .title-input {
-      height: 1.9rem;
-      font-size: 1.0625rem;
+      height: 1.6rem;
+      font-size: 1rem;
       line-height: 1.2;
       font-weight: 650;
       letter-spacing: -0.01em;
     }
 
     .header-actions {
-      width: 100%;
-      max-width: 100%;
-      gap: 0.25rem;
-      padding-bottom: 0.125rem;
-      justify-content: flex-end;
+      flex: 0 0 auto;
+      width: auto;
+      max-width: 60%;
+      gap: 0.2rem;
+      padding-bottom: 0;
     }
 
     .btn-icon {
-      min-width: 36px;
+      min-width: 32px;
       min-height: 30px;
-      padding: 0 0.45rem;
+      padding: 0 0.4rem;
       font-size: 0.7rem;
       border-radius: 7px;
       background: var(--card-bg);
       opacity: 0.95;
     }
 
-    /* Hide labels on phones (was 480px — now 600px so labels vanish
-       sooner and the row is a true icon strip). The hide/show toggle
-       keeps its label so the user knows what the button does. */
-    @media (max-width: 600px) {
-      .btn-icon .btn-label {
-        display: none;
-      }
-      .btn-icon {
-        padding: 0 0.4rem;
-        min-width: 34px;
-      }
+    /* Hide labels on phones so the 4 mobile-visible buttons fit
+       comfortably in the right-side icon strip without competing for
+       the title's space. */
+    .btn-icon .btn-label {
+      display: none;
+    }
+    .btn-icon {
+      padding: 0 0.35rem;
+      min-width: 30px;
     }
 
     .editor-content {
