@@ -115,60 +115,69 @@
     <button
       type="button"
       class="toolbar-btn"
-      title="Unordered List"
+      title="Unordered list"
+      aria-label="Bulleted list"
       onclick={() => onList?.(false)}
     >
-      •
+      <span aria-hidden="true">•</span>
     </button>
-    
+
     <button
       type="button"
       class="toolbar-btn"
-      title="Ordered List"
+      title="Numbered list"
+      aria-label="Numbered list"
       onclick={() => onList?.(true)}
     >
-      1.
+      <span aria-hidden="true">1.</span>
     </button>
-    
+
     <button
       type="button"
       class="toolbar-btn"
-      title="Task List"
+      title="Task list"
+      aria-label="Task list"
       onclick={onCheckbox}
     >
-      [ ]
+      <span aria-hidden="true">☐</span>
     </button>
   </div>
-  
-  <div class="toolbar-separator"></div>
-  
+
+  <div class="toolbar-separator" aria-hidden="true"></div>
+
   <!-- Insert -->
   <div class="toolbar-group">
     <button
       type="button"
       class="toolbar-btn"
-      title="Insert Link (Ctrl+K)"
+      title="Insert link (Ctrl+K)"
+      data-icon-only="true"
       onclick={onLink}
     >
-      Link
+      <span class="btn-icon" aria-hidden="true">↗</span>
+      <span class="btn-label">Link</span>
     </button>
-    
+
     <button
       type="button"
       class="toolbar-btn"
-      title="Insert Image"
+      title="Insert image"
+      data-icon-only="true"
       onclick={onImage}
     >
-      Img
+      <span class="btn-icon" aria-hidden="true">▣</span>
+      <span class="btn-label">Img</span>
     </button>
-    
+
     <button
       type="button"
       class="toolbar-btn"
-      title="Insert Table"
+      title="Insert table"
+      data-icon-only="true"
       onclick={onTable}
     >
-      Table
+      <span class="btn-icon" aria-hidden="true">▦</span>
+      <span class="btn-label">Table</span>
     </button>
   </div>
 </div>
@@ -177,139 +186,151 @@
   .toolbar {
     display: flex;
     align-items: center;
-    padding: 8px 12px;
-    background-color: var(--bg-secondary);
+    padding: 0.5rem 0.75rem;
+    background-color: var(--bg-color);
     border-bottom: 1px solid var(--border-color);
-    gap: 8px;
+    gap: 0.4rem;
     flex-wrap: nowrap;
     overflow-x: auto;
     overflow-y: visible;
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
+    position: relative;
   }
 
   .toolbar::-webkit-scrollbar {
     display: none;
   }
-  
+
+  /* Edge-fade affordance: a position:absolute overlay pinned to the right
+     edge of the the visible toolbar on mobile. The fade paints a dark
+     gradient on top of the buttons so the last visible button appears
+     to fade out — telling the user there's more content to scroll to. */
+  @media (max-width: 768px) {
+    .toolbar::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 1px;
+      width: 44px;
+      pointer-events: none;
+      background: linear-gradient(
+        to right,
+        transparent,
+        rgba(0, 0, 0, 0.55) 60%,
+        rgba(0, 0, 0, 0.7) 100%
+      );
+    }
+  }
+
   .toolbar-group {
     display: flex;
-    gap: 4px;
+    gap: 0.25rem;
     align-items: center;
     flex: 0 0 auto;
   }
-  
+
   .toolbar-btn {
-    min-width: 38px;
-    min-height: 38px;
-    padding: 6px 10px;
-    background: var(--btn-bg);
-    border: 1px solid var(--border-color);
+    min-width: 36px;
+    min-height: 36px;
+    padding: 0.4rem 0.55rem;
+    background: transparent;
+    border: 1px solid transparent;
     border-radius: 7px;
     cursor: pointer;
     font: inherit;
-    font-size: 13px;
+    font-size: 0.78rem;
     font-weight: 600;
-    transition: all 0.2s;
-    color: var(--text-primary);
+    color: var(--text-color);
     white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition:
+      background var(--motion-fast) var(--ease-out),
+      border-color var(--motion-fast) var(--ease-out),
+      color var(--motion-fast) var(--ease-out);
   }
-  
   .toolbar-btn:hover {
-    background: var(--btn-hover);
-    border-color: var(--border-hover);
+    background: var(--hover-bg);
   }
-  
+  .toolbar-btn:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 1px;
+  }
   .toolbar-btn:active {
-    transform: scale(0.95);
+    background: var(--hover-bg);
   }
-  
+
   .toolbar-separator {
     width: 1px;
-    height: 20px;
+    height: 18px;
     background-color: var(--border-color);
+    margin: 0 0.15rem;
+    flex: 0 0 auto;
   }
-  
+
   .toolbar-dropdown {
     position: relative;
   }
-  
+
   .dropdown-menu {
     position: absolute;
     top: 100%;
     left: 0;
     margin-top: 4px;
-    background: var(--bg-primary);
+    background: var(--card-bg);
     border: 1px solid var(--border-color);
-    border-radius: 4px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-md);
     z-index: 1000;
-    min-width: 150px;
+    min-width: 160px;
+    overflow: hidden;
   }
-  
+
   .dropdown-item {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 0.5rem;
     width: 100%;
-    padding: 8px 12px;
+    padding: 0.55rem 0.7rem;
     background: none;
     border: none;
     text-align: left;
     cursor: pointer;
-    font-size: 14px;
-    color: var(--text-primary);
-    transition: background-color 0.2s;
+    font-size: 0.85rem;
+    color: var(--text-color);
+    transition: background-color var(--motion-fast) var(--ease-out);
   }
-  
+
   .dropdown-item:hover {
     background: var(--hover-bg);
-  }
-  
-  /* Use global CSS variables for theme support */
-  .toolbar {
-    --bg-primary: var(--bg-color);
-    --bg-secondary: var(--card-bg);
-    --border-color: var(--border-color);
-    --border-hover: var(--primary-color);
-    --text-primary: var(--text-color);
-    --btn-bg: var(--bg-color);
-    --btn-hover: var(--hover-bg);
-    --hover-bg: var(--hover-bg);
-  }
-  
-  .dropdown-menu {
-    --bg-primary: var(--bg-color);
-    --bg-secondary: var(--card-bg);
-    --border-color: var(--border-color);
-    --border-hover: var(--primary-color);
-    --text-primary: var(--text-color);
-    --btn-bg: var(--bg-color);
-    --btn-hover: var(--hover-bg);
-    --hover-bg: var(--hover-bg);
   }
 
   @media (max-width: 768px) {
     .toolbar {
-      padding: 0.5rem 0.75rem;
-      gap: 0.375rem;
-      background: var(--bg-color);
+      padding: 0.4rem 0.5rem;
+      gap: 0.25rem;
     }
-
     .toolbar-separator {
-      height: 24px;
+      height: 22px;
       opacity: 0.55;
     }
-
     .toolbar-btn {
-      min-width: 40px;
-      min-height: 40px;
-      padding-inline: 0.625rem;
-      border-radius: 9px;
-      background: var(--card-bg);
-      font-size: 0.82rem;
+      min-width: 38px;
+      min-height: 38px;
+      padding: 0.35rem 0.5rem;
+      border-radius: 8px;
+      font-size: 0.78rem;
     }
-
+    /* On phone widths, only show icons / no labels for the most
+       space-hungry buttons. Keep the labels on Bold/Italic/Code since
+       the letterforms themselves ARE the icons. */
+    .toolbar-btn[data-no-label='true'] .btn-label,
+    .toolbar-btn[data-icon-only='true'] .btn-label {
+      display: none;
+    }
     .dropdown-menu {
       position: fixed;
       left: 0.75rem;

@@ -30,7 +30,7 @@
     height: 100%;
     display: grid;
     place-items: center;
-    padding: var(--space-6) var(--space-4);
+    padding: var(--space-6) var(--space-4) calc(var(--space-16) + env(safe-area-inset-bottom, 0px));
     overflow-y: auto;
     background: var(--bg-color);
   }

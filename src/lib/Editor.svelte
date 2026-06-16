@@ -7,13 +7,14 @@
   import EditorToolbar from './EditorToolbar.svelte'
   import * as imageHandler from './ImageHandler.svelte'
   import * as commands from './editorCommands'
+  import Icon from './Icons.svelte'
 
   interface Props {
     id: string
   }
 
   let { id }: Props = $props()
-  
+
   let titleInput: HTMLInputElement | undefined = $state()
   let contentTextarea: HTMLTextAreaElement | undefined = $state()
   let previewMode = $state(false)
@@ -21,6 +22,15 @@
   let backlinks = $state<NoteMetadata[]>([])
   let isDragging = $state(false)
   let showOutline = $state(false)
+
+  // Toolbar visibility — persisted across sessions, defaults to true.
+  // Read from localStorage on mount; write on every toggle.
+  const TOOLBAR_KEY = 'mindnote-show-toolbar'
+  function readToolbarPref(): boolean {
+    if (typeof localStorage === 'undefined') return true
+    const v = localStorage.getItem(TOOLBAR_KEY)
+    return v === null ? true : v === 'true'
+  }
   let showToolbar = $state(true)
 
   // Lazy-loaded components (mermaid, markdown rendering, outline). Keeps
@@ -150,6 +160,11 @@
 
   const toggleOutline = () => {
     showOutline = !showOutline
+  }
+
+  const toggleToolbar = () => {
+    showToolbar = !showToolbar
+    try { localStorage.setItem(TOOLBAR_KEY, String(showToolbar)) } catch {}
   }
 
   // Toolbar action handlers
@@ -403,8 +418,9 @@
     }
   }
 
-  // Focus title on mount
+  // Focus title on mount and read toolbar preference
   onMount(() => {
+    showToolbar = readToolbarPref()
     titleInput?.focus()
   })
 
@@ -417,49 +433,76 @@
 <div class="editor">
   {#if notesStore.currentNote}
     <div class="editor-header">
-      <input
-        bind:this={titleInput}
-        type="text"
-        class="title-input editor-title"
-        value={notesStore.currentNote.title}
-        oninput={handleTitleChange}
-        placeholder="Note title..."
-      />
+      <div class="title-row">
+        <input
+          bind:this={titleInput}
+          type="text"
+          class="title-input editor-title"
+          value={notesStore.currentNote.title}
+          oninput={handleTitleChange}
+          placeholder="Untitled"
+        />
+      </div>
       <div class="header-actions">
-        <button 
-          onclick={toggleOutline} 
-          class="btn-outline" 
+        <button
+          onclick={toggleToolbar}
+          class="btn-icon btn-toolbar-toggle"
+          class:active={showToolbar}
+          title={showToolbar ? 'Hide formatting toolbar' : 'Show formatting toolbar'}
+          aria-pressed={showToolbar}
+          aria-label={showToolbar ? 'Hide formatting toolbar' : 'Show formatting toolbar'}
+        >
+          <Icon name={showToolbar ? 'eye-off' : 'tool'} size={16} strokeWidth={1.75} />
+          <span class="btn-label" aria-hidden="true">{showToolbar ? 'Hide tools' : 'Show tools'}</span>
+        </button>
+        <button
+          onclick={toggleOutline}
+          class="btn-icon btn-outline desktop-only"
           class:active={showOutline}
           title={showOutline ? 'Hide outline' : 'Show outline (TOC)'}
+          aria-pressed={showOutline}
         >
-          <span aria-hidden="true">TOC</span>
+          <Icon name="list" size={16} strokeWidth={1.75} />
+          <span class="btn-label" aria-hidden="true">Outline</span>
         </button>
-        <button 
-          onclick={toggleSplitView} 
-          class="btn-split" 
+        <button
+          onclick={toggleSplitView}
+          class="btn-icon btn-split desktop-only"
           class:active={splitView}
-          title={splitView ? 'Exit split view' : 'Split view (editor ⬅➡ preview)'}
+          title={splitView ? 'Exit split view' : 'Split view'}
+          aria-pressed={splitView}
         >
-          <span aria-hidden="true">Split</span>
+          <Icon name="columns" size={16} strokeWidth={1.75} />
+          <span class="btn-label" aria-hidden="true">Split</span>
         </button>
-        <button 
-          onclick={togglePreview} 
-          class="btn-preview" 
+        <button
+          onclick={togglePreview}
+          class="btn-icon btn-preview"
           class:active={previewMode}
           title={previewMode ? 'Edit mode' : 'Preview mode'}
+          aria-pressed={previewMode}
         >
-          <span aria-hidden="true">{previewMode ? 'Edit' : 'View'}</span>
+          <Icon name={previewMode ? 'edit' : 'eye'} size={16} strokeWidth={1.75} />
+          <span class="btn-label" aria-hidden="true">{previewMode ? 'Edit' : 'Preview'}</span>
         </button>
-        <button 
-          onclick={handleTogglePin} 
-          class="btn-pin" 
+        <button
+          onclick={handleTogglePin}
+          class="btn-icon btn-pin"
           class:pinned={notesStore.currentNote.pinned}
           title={notesStore.currentNote.pinned ? 'Unpin note' : 'Pin note'}
+          aria-pressed={notesStore.currentNote.pinned}
         >
-          <span aria-hidden="true">{notesStore.currentNote.pinned ? 'Pinned' : 'Pin'}</span>
+          <Icon name={notesStore.currentNote.pinned ? 'pinned' : 'pin'} size={16} strokeWidth={notesStore.currentNote.pinned ? 0 : 1.75} />
+          <span class="btn-label" aria-hidden="true">{notesStore.currentNote.pinned ? 'Pinned' : 'Pin'}</span>
         </button>
-        <button onclick={handleDelete} class="btn-delete" title="Delete note">
-          <span aria-hidden="true">Delete</span>
+        <button
+          onclick={handleDelete}
+          class="btn-icon btn-delete"
+          title="Delete note"
+          aria-label="Delete note"
+        >
+          <Icon name="trash" size={16} strokeWidth={1.75} />
+          <span class="btn-label" aria-hidden="true">Delete</span>
         </button>
       </div>
     </div>
@@ -611,28 +654,118 @@
   }
 
   .editor-header {
-    padding: 1.5rem 2rem;
-    padding-left: 3.5rem; /* Add space for toggle button */
+    /* Two-row stack: title on top, actions below.
+       On wide screens (>= 769px) it becomes a single row with the title
+       taking the remaining space and actions on the right. */
+    padding: 0.9rem 1.5rem;
+    padding-left: 4rem; /* space for the floating sidebar toggle */
     border-bottom: 1px solid var(--border-color);
     display: flex;
-    gap: 1rem;
-    align-items: center;
+    flex-direction: column;
+    gap: 0.5rem;
     min-width: 0;
     flex-shrink: 0;
+    background: var(--bg-color);
   }
 
-  /* On mobile, reset padding */
-  @media (max-width: 1024px) {
-    .editor-header {
-      padding-left: 2rem;
-    }
+  .title-row {
+    min-width: 0;
   }
 
   .header-actions {
     display: flex;
-    gap: 0.5rem;
-    flex-shrink: 0;
+    gap: 0.4rem;
+    flex-wrap: nowrap;
     min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 2px; /* room for the focus ring on the last button */
+  }
+  .header-actions::-webkit-scrollbar { display: none; }
+
+  .btn-icon {
+    appearance: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    background: transparent;
+    border: 1px solid var(--border-color);
+    font: inherit;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    cursor: pointer;
+    opacity: 0.75;
+    min-height: 34px;
+    padding: 0 0.6rem;
+    border-radius: var(--radius-sm);
+    color: var(--text-color);
+    white-space: nowrap;
+    flex: 0 0 auto;
+    transition:
+      opacity var(--motion-fast) var(--ease-out),
+      background var(--motion-fast) var(--ease-out),
+      border-color var(--motion-fast) var(--ease-out),
+      color var(--motion-fast) var(--ease-out);
+  }
+  .btn-icon:hover { opacity: 1; }
+  .btn-icon:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 1px;
+  }
+
+  .btn-icon.active,
+  .btn-icon[aria-pressed='true'] {
+    opacity: 1;
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+  }
+  .btn-icon.btn-preview.active,
+  .btn-icon.btn-preview[aria-pressed='true'] {
+    background: var(--primary-color);
+    color: #fff;
+  }
+
+  .btn-icon.btn-toolbar-toggle[aria-pressed='true'] {
+    background: var(--card-bg);
+    color: var(--primary-color);
+  }
+  .btn-icon.btn-toolbar-toggle[aria-pressed='false'] {
+    border-style: dashed;
+    opacity: 0.7;
+  }
+
+  .btn-icon.btn-pin.pinned,
+  .btn-icon.btn-pin[aria-pressed='true'] {
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+  }
+
+  .btn-icon.btn-delete:hover {
+    opacity: 1;
+    border-color: #ff4444;
+    background: #ff4444;
+    color: #fff;
+  }
+
+  .desktop-only { display: none; }
+
+  @media (min-width: 769px) {
+    .editor-header {
+      flex-direction: row;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem 1.75rem 1rem 4.25rem;
+    }
+    .title-row { flex: 1 1 auto; min-width: 0; }
+    .header-actions {
+      flex: 0 0 auto;
+      overflow-x: visible;
+    }
+    .desktop-only { display: inline-flex; }
   }
 
   .editor-content {
@@ -763,8 +896,8 @@
 
   .title-input {
     flex: 1;
-    font-size: 1.8rem;
-    font-weight: 700;
+    font-size: 1.5rem;
+    font-weight: 650;
     background: transparent;
     border: none;
     color: var(--text-color);
@@ -774,78 +907,12 @@
     min-width: 0;
     width: 100%;
     text-overflow: ellipsis;
+    letter-spacing: -0.01em;
+    line-height: 1.25;
   }
 
   .title-input::placeholder {
     color: var(--text-secondary);
-  }
-
-  .btn-outline,
-  .btn-split,
-  .btn-preview,
-  .btn-pin,
-  .btn-delete {
-    background: transparent;
-    border: 1px solid var(--border-color);
-    font: inherit;
-    font-size: 0.78rem;
-    font-weight: 600;
-    letter-spacing: 0.01em;
-    cursor: pointer;
-    opacity: 0.7;
-    transition: all 0.2s;
-    min-height: 36px;
-    padding: 0 0.65rem;
-    border-radius: var(--radius-sm);
-    color: var(--text-color);
-    white-space: nowrap;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .btn-outline:hover,
-  .btn-outline.active {
-    opacity: 1;
-    border-color: var(--primary-color);
-    background: var(--primary-color);
-    color: white;
-  }
-
-  .btn-split:hover,
-  .btn-split.active {
-    opacity: 1;
-    border-color: var(--primary-color);
-    background: var(--primary-color);
-    color: white;
-  }
-
-  .btn-preview:hover,
-  .btn-preview.active {
-    opacity: 1;
-    border-color: var(--primary-color);
-    background: var(--primary-color);
-    color: white;
-  }
-
-  .btn-pin:hover {
-    opacity: 1;
-    border-color: var(--primary-color);
-    background: var(--primary-color);
-    color: white;
-  }
-
-  .btn-pin.pinned {
-    opacity: 1;
-    border-color: var(--primary-color);
-    color: var(--primary-color);
-  }
-
-  .btn-delete:hover {
-    opacity: 1;
-    border-color: #ff4444;
-    background: #ff4444;
-    color: white;
   }
 
   .content-textarea {
@@ -981,76 +1048,17 @@
     font-size: 1rem;
   }
 
-  /* Mobile optimizations */
-  @media (max-width: 768px) {
-    .editor-header {
-      padding: 1rem;
-      padding-top: 4rem; /* Space for burger menu */
-    }
-
-    .title-input {
-      font-size: 1.4rem;
-    }
-
-    .content-textarea {
-      padding: 1rem;
-      font-size: 1rem;
-      line-height: 1.8;
-    }
-
-    .editor-footer {
-      padding: 0.5rem 1rem;
-      font-size: 0.75rem;
-      flex-direction: column;
-      gap: 0.25rem;
-    }
-
-    /* Disable split view on mobile, stack vertically instead */
-    .split-container {
-      flex-direction: column;
-    }
-
-    .split-divider {
-      width: 100%;
-      height: 4px;
-      cursor: row-resize;
-    }
-
-    .btn-split {
-      display: none; /* Hide split view button on mobile */
-    }
-  }
-
-  @media (max-width: 600px) {
-    .editor-header {
-      padding: 0.75rem;
-      padding-top: 3.5rem;
-    }
-
-    .title-input {
-      font-size: 1.2rem;
-    }
-
-    .content-textarea {
-      padding: 0.75rem;
-      font-size: 0.95rem;
-    }
-  }
-
-  /* Phone editor: make the chrome fit the device instead of wrapping like desktop. */
+  /* ===== Mobile polish — make the chrome fit a 320-768px screen. =====
+     These rules intentionally override the default editor-header /
+     btn-icon rules above for the narrow viewport. */
   @media (max-width: 768px) {
     .editor {
       overflow: hidden;
     }
 
     .editor-header {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr);
-      align-items: start;
-      gap: 0.5rem;
-      padding: calc(max(0px, env(safe-area-inset-top, 0px)) + 0.75rem) 0.75rem 0.65rem 4rem;
-      min-height: 4rem;
-      background: var(--bg-color);
+      padding: calc(env(safe-area-inset-top, 0px) + 0.6rem) 0.6rem 0.55rem 3.75rem;
+      gap: 0.45rem;
     }
 
     .title-input {
@@ -1064,35 +1072,30 @@
     .header-actions {
       width: 100%;
       max-width: 100%;
-      overflow-x: auto;
-      overflow-y: hidden;
-      gap: 0.375rem;
+      gap: 0.3rem;
       padding-bottom: 0.125rem;
-      scrollbar-width: none;
-      -webkit-overflow-scrolling: touch;
     }
 
-    .header-actions::-webkit-scrollbar {
-      display: none;
-    }
-
-    .btn-outline,
-    .btn-split,
-    .btn-preview,
-    .btn-pin,
-    .btn-delete {
-      min-width: 42px;
+    .btn-icon {
+      min-width: 40px;
       min-height: 38px;
-      padding-inline: 0.625rem;
+      padding-inline: 0.5rem;
       font-size: 0.72rem;
-      border-radius: 9px;
+      border-radius: 8px;
       background: var(--card-bg);
-      opacity: 0.9;
+      opacity: 0.95;
     }
 
-    .btn-split,
-    .btn-outline {
-      display: none;
+    /* On phone widths (<= 480px) hide button labels and keep icons only.
+       This buys back enough space that all 5 actions fit on one row. */
+    @media (max-width: 480px) {
+      .btn-icon .btn-label {
+        display: none;
+      }
+      .btn-icon {
+        padding-inline: 0.4rem;
+        min-width: 38px;
+      }
     }
 
     .editor-content {

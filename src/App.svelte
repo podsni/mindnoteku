@@ -125,53 +125,38 @@
     transition: background-color var(--motion-base), color var(--motion-base);
   }
 
-  /* Use grid-template-columns on desktop so the sidebar takes layout space
-     without animating layout properties. Width animates on the
-     `grid-template-columns` shorthand which the browser can promote to
-     compositor-only on Chromium/Firefox. */
-  @media (min-width: 1025px) {
-    .app {
-      --app-sidebar-col: 0fr;
-      --app-main-col: 1fr;
-      display: grid;
-      grid-template-columns:
-        var(--app-sidebar-col)
-        var(--app-main-col);
-      transition:
-        grid-template-columns var(--motion-base) var(--ease-out),
-        background-color var(--motion-base),
-        color var(--motion-base);
-    }
-    .app.sidebar-open {
-      --app-sidebar-col: var(--sidebar-width);
-      --app-main-col: 1fr;
-    }
-  }
-
+  /* On desktop the sidebar is fixed-positioned and slides via its own
+     transform animation (see Sidebar.svelte). It is therefore OUT of
+     normal flow, so .main-content must fill the full width of .app.
+     We deliberately do NOT use CSS grid here: putting a fixed-position
+     element into a grid cell makes the auto-placed siblings jump to a
+     new row, which would collapse the main column to zero. Flex + a
+     flex:1 main child is the correct, simple layout. */
   .main-content {
-    flex: 1;
+    flex: 1 1 auto;
+    width: 100%;
     min-width: 0;
     display: flex;
     overflow: hidden;
+    /* On desktop, the open sidebar overlays the page from the left.
+       Keep the main content clear of the sidebar width + a gutter. */
   }
 
-  /* On desktop, the .app becomes a grid container; the sidebar <aside> is
-     a direct grid child and the .main-content is the second column.
-     Reset the flex layout so the grid layout works. */
   @media (min-width: 1025px) {
-    .main-content {
-      flex: 0 0 auto;
+    .app.sidebar-open .main-content {
+      padding-left: var(--sidebar-width);
+      transition: padding-left var(--motion-base) var(--ease-out);
+    }
+    .app:not(.sidebar-open) .main-content {
+      padding-left: 0;
+      transition: padding-left var(--motion-base) var(--ease-out);
     }
   }
 
-  /* Mobile / tablet: sidebar overlays, main content stays full-bleed */
-  @media (max-width: 1024px) {
-    .main-content {
-      margin-left: 0 !important;
-    }
-  }
-
-  /* Sidebar toggle */
+  /* Sidebar toggle — small fixed button that floats above the page.
+     On desktop it nudges to the right of the open sidebar so it doesn't
+     overlap the brand mark. On mobile it stays in the top-left corner
+     and respects the safe-area inset. */
   .sidebar-toggle {
     position: fixed;
     top: var(--space-3);
@@ -197,10 +182,11 @@
       transform var(--motion-base) var(--ease-out);
   }
 
-  /* On desktop, slide the toggle out of the way when sidebar is open */
+  /* On desktop, slide the toggle out of the way when sidebar is open.
+     Match the sidebar's own width + its own translateX animation. */
   @media (min-width: 1025px) {
     .sidebar-toggle.sidebar-open {
-      --toggle-x: calc(var(--sidebar-width) - var(--space-3));
+      --toggle-x: var(--sidebar-width);
     }
   }
 
