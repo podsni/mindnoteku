@@ -350,4 +350,23 @@
       z-index: 1001;
     }
   }
+
+  /* Very narrow phones (≤ 360px) — let the toolbar wrap to 2 rows
+     instead of horizontal-scrolling. The 11 buttons + 3 separators
+     don't fit in 320px without scrolling, and the swipe affordance
+     is harder to discover on a small screen. Wrapping keeps every
+     button visible at the cost of ~36px of vertical chrome. */
+  @media (max-width: 360px) {
+    .toolbar {
+      flex-wrap: wrap;
+      overflow-x: visible;
+      padding: 0.25rem 0.4rem;
+      gap: 0.1rem 0.15rem;
+    }
+    .toolbar-btn {
+      min-width: 32px;
+      min-height: 32px;
+      padding: 0.2rem 0.4rem;
+    }
+  }
 </style>

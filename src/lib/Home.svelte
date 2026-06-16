@@ -121,18 +121,20 @@
   }
 
   .link {
-    /* Text-link affordance: a softer color than the primary CTA, an
-       inline arrow icon, and a generous tap area. The dotted underline
-       shows only on hover/focus to signal interactivity without
-       fighting the body text visually. */
+    /* Secondary action styling: full text-color (not dimmed like body),
+       with a 1px solid bottom border that reads as an underline. The
+       border uses --border-color so it stays subtle in any theme; on
+       hover/focus the border switches to the brand primary to confirm
+       the affordance. */
     color: var(--text-color);
-    opacity: 0.85;
+    opacity: 1;
     text-decoration: none;
     font-size: var(--font-size-base);
     font-weight: 500;
     padding: var(--space-2) var(--space-3);
     border-radius: var(--radius-sm);
     border: 1px solid transparent;
+    border-bottom-color: var(--border-color);
     background: transparent;
     cursor: pointer;
     font-family: inherit;
@@ -141,15 +143,15 @@
     gap: 0.4rem;
     min-height: 40px;
     transition:
-      opacity var(--motion-fast) var(--ease-out),
+      color var(--motion-fast) var(--ease-out),
       background var(--motion-fast) var(--ease-out),
       border-color var(--motion-fast) var(--ease-out);
   }
 
   .link:hover {
-    opacity: 1;
     color: var(--primary-color);
     background: var(--hover-bg);
+    border-bottom-color: var(--primary-color);
   }
 
   .link:focus-visible {
