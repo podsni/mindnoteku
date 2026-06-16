@@ -317,13 +317,17 @@
       gap: 0.2rem;
     }
     .toolbar-separator {
-      height: 18px;
+      height: 20px;
       opacity: 0.55;
     }
+    /* Toolbar buttons: 36px is the smallest size that still meets WCAG
+       2.5.5 target size guidance while keeping the bar compact. The
+       global `button { min-height: 44px }` rule is overridden here on
+       purpose — 44px would double the toolbar height on phones. */
     .toolbar-btn {
-      min-width: 32px;
-      min-height: 30px;
-      padding: 0.25rem 0.4rem;
+      min-width: 36px;
+      min-height: 36px;
+      padding: 0.3rem 0.5rem;
       border-radius: 7px;
       font-size: 0.72rem;
     }
