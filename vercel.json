@@ -49,7 +49,7 @@
       ]
     },
     {
-      "source": "/((?!sw\\.js|workbox-).*)",
+      "source": "/((?!sw\\.js|workbox-|assets/|manifest\\.webmanifest|dropbox-callback).*)",
       "headers": [
         { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
       ]
