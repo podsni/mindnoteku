@@ -578,7 +578,7 @@
               oninput={handleContentChange}
               onpaste={handlePaste}
               onkeydown={handleKeyDown}
-              placeholder="Start writing..."
+              placeholder="Start writing — Markdown supported. Press Ctrl+B for bold, Ctrl+I for italic, Ctrl+K for link."
             ></textarea>
             {#if showOutline && OutlineViewComp}
               <div class="outline-sidebar">
@@ -586,8 +586,8 @@
               </div>
             {/if}
           </div>
-      {/if}
-      
+        {/if}
+
       <!-- Drag overlay -->
       {#if isDragging}
         <div class="drag-overlay">

@@ -313,8 +313,8 @@
 
   @media (max-width: 768px) {
     .toolbar {
-      padding: 0.3rem 0.5rem;
-      gap: 0.2rem;
+      padding: 0.2rem 0.4rem;
+      gap: 0.15rem;
     }
     .toolbar-separator {
       height: 20px;
