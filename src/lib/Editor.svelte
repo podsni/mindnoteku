@@ -908,15 +908,22 @@
     top: calc(100% + 6px);
     right: 0;
     min-width: 170px;
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    background: color-mix(in srgb, var(--bg-color) 85%, var(--card-bg));
+    border: 1px solid var(--border-hover);
+    border-radius: 10px;
+    box-shadow:
+      0 12px 32px rgba(0, 0, 0, 0.45),
+      0 0 0 1px rgba(255, 255, 255, 0.04) inset;
     padding: 0.35rem;
     display: flex;
     flex-direction: column;
     gap: 0.15rem;
     z-index: 50;
+    animation: downloadMenuIn 140ms var(--ease-out);
+  }
+  @keyframes downloadMenuIn {
+    from { opacity: 0; transform: translateY(-4px) scale(0.98); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
   }
   .download-option {
     appearance: none;
