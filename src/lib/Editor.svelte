@@ -823,10 +823,12 @@
     gap: 0.4rem;
     flex-wrap: nowrap;
     min-width: 0;
-    overflow-x: auto;
-    overflow-y: hidden;
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
+    /* `overflow: visible` so popovers anchored inside (download menu,
+       future overflow menus) aren't clipped by the slim header bar.
+       Horizontal scroll is unnecessary — the action strip is already
+       capped at 60% of the row width and the icons compress on small
+       screens, so they never overflow. */
+    overflow: visible;
     padding-bottom: 2px; /* room for the focus ring on the last button */
   }
   .header-actions::-webkit-scrollbar { display: none; }
@@ -984,7 +986,7 @@
     .title-row { flex: 1 1 auto; min-width: 0; }
     .header-actions {
       flex: 0 0 auto;
-      overflow-x: visible;
+      overflow: visible;
     }
     .desktop-only { display: inline-flex; }
   }
