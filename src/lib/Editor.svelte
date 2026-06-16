@@ -791,7 +791,10 @@
   .editor-header {
     /* Two-row stack: title on top, actions below.
        On wide screens (>= 769px) it becomes a single row with the title
-       taking the remaining space and actions on the right. */
+       taking the remaining space and actions on the right.
+       `position: relative` + `z-index: 2` lifts the header above the
+       .editor-content sibling so popovers inside the header (download
+       menu, future overflow menus) aren't hidden behind the toolbar. */
     padding: 0.9rem 1.5rem;
     padding-left: 4rem; /* space for the floating sidebar toggle */
     border-bottom: 1px solid var(--border-color);
@@ -801,6 +804,8 @@
     min-width: 0;
     flex-shrink: 0;
     background: var(--bg-color);
+    position: relative;
+    z-index: 2;
   }
 
   .title-row {
