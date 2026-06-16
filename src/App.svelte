@@ -303,6 +303,20 @@
     animation: themeTransition 0.4s ease;
   }
 
+  /* Tablet range (769-1024) — bump icon button touch target to 36px.
+     The base rule (in Editor.svelte) is 34px and the mobile override
+     (≤ 768) is 36px. 1024-landscape iPad and small tablets fall
+     into this gap and inherit the 34px base, below WCAG 2.5.5's
+     36px minimum. Defined here in the unscoped App.svelte style
+     block so it overrides both Editor.svelte and EditorToolbar
+     scoped rules in this breakpoint. */
+  @media (min-width: 769px) and (max-width: 1024px) {
+    :global(.btn-icon) {
+      min-width: 36px;
+      min-height: 36px;
+    }
+  }
+
   @keyframes themeTransition {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.85; }

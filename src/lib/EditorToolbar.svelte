@@ -387,10 +387,6 @@
      1024-landscape iPad and small tablets fall into this gap and
      inherit the 34px base, which is below WCAG 2.5.5's 36px minimum
      for fine pointer input. Force the larger target here. */
-  @media (min-width: 769px) and (max-width: 1024px) {
-    :global(.btn-icon) {
-      min-width: 36px;
-      min-height: 36px;
-    }
-  }
+  /* (Rule moved to App.svelte — it needs to be unscoped to apply
+     across both Editor.svelte and EditorToolbar.svelte instances.) */
 </style>
