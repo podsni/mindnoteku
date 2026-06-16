@@ -30,3 +30,4 @@ dist-ssr
 .agents/skills/impeccable/live/
 .agents/skills/impeccable/agents/
 .agents/skills/impeccable/.cache/
+.vercel

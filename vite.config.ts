@@ -78,26 +78,12 @@ export default defineConfig({
     target: 'es2020',
     cssCodeSplit: true,
     sourcemap: false,
-    rollupOptions: {
-      output: {
-        // Keep main bundle lean: heavy/optional subsystems go to their
-        // own chunks. The shell + note list + editor + theme load eagerly;
-        // markdown preview, mermaid, dropbox sync, image processing,
-        // and outline load lazily via dynamic import.
-        manualChunks: (id) => {
-          if (!id.includes('node_modules')) return undefined
-          if (id.includes('mermaid')) return 'mermaid'
-          if (id.includes('cytoscape')) return 'cytoscape'
-          if (id.includes('katex') || id.includes('mathjax') || id.includes('mathjs')) {
-            return 'math'
-          }
-          if (id.includes('idb') || id.includes('fake-indexeddb')) {
-            return 'storage'
-          }
-          return 'vendor'
-        },
-      },
-    },
+    // Avoid manualChunks for now. A previous aggressive split separated
+    // CommonJS-heavy Mermaid/Cytoscape dependencies into different chunks and
+    // broke production with:
+    //   TypeError: Cannot set properties of undefined (setting 'exports')
+    // Lazy component imports in App.svelte still keep optional screens out of
+    // the initial route without overriding Rollup's dependency ordering.
     chunkSizeWarningLimit: 600,
   },
 })
