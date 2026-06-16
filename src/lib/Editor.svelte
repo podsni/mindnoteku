@@ -850,9 +850,12 @@
        against the dark chrome to ~3.4:1, below WCAG AA's 4.5:1 for
        non-text UI components (the 3:1 floor is for text ≥18px / bold
        ≥14px, not for icon affordances). Use a slightly cooler text
-       color at full opacity and reserve dimming for hover/disabled. */
+       color at full opacity and reserve dimming for hover/disabled.
+       36px min-height is the WCAG 2.5.5 minimum touch target; we use
+       the same on mobile and desktop so the touch affordance is
+       consistent across input methods. */
     opacity: 1;
-    min-height: 34px;
+    min-height: 36px;
     padding: 0 0.6rem;
     border-radius: var(--radius-sm);
     color: var(--text-color);
