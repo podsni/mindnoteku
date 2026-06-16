@@ -846,7 +846,12 @@
     font-weight: 600;
     letter-spacing: 0.01em;
     cursor: pointer;
-    opacity: 0.75;
+    /* Full-opacity text on the icon — opacity:0.75 brought the contrast
+       against the dark chrome to ~3.4:1, below WCAG AA's 4.5:1 for
+       non-text UI components (the 3:1 floor is for text ≥18px / bold
+       ≥14px, not for icon affordances). Use a slightly cooler text
+       color at full opacity and reserve dimming for hover/disabled. */
+    opacity: 1;
     min-height: 34px;
     padding: 0 0.6rem;
     border-radius: var(--radius-sm);
@@ -854,12 +859,11 @@
     white-space: nowrap;
     flex: 0 0 auto;
     transition:
-      opacity var(--motion-fast) var(--ease-out),
       background var(--motion-fast) var(--ease-out),
       border-color var(--motion-fast) var(--ease-out),
       color var(--motion-fast) var(--ease-out);
   }
-  .btn-icon:hover { opacity: 1; }
+  .btn-icon:hover { background: var(--hover-bg); }
   .btn-icon:focus-visible {
     outline: 2px solid var(--primary-color);
     outline-offset: 1px;
@@ -867,9 +871,9 @@
 
   .btn-icon.active,
   .btn-icon[aria-pressed='true'] {
-    opacity: 1;
     border-color: var(--primary-color);
     color: var(--primary-color);
+    background: var(--hover-bg);
   }
   .btn-icon.btn-preview.active,
   .btn-icon.btn-preview[aria-pressed='true'] {
@@ -1354,8 +1358,12 @@
     }
 
     .btn-icon {
-      min-width: 32px;
-      min-height: 30px;
+      /* WCAG 2.5.5 — minimum 36×36px interactive target on mobile.
+         The compact chrome (39px header) needs all 4 visible icons
+         plus a 4px gap, so we keep min-size at 36 to fit comfortably
+         in the 60%-width action strip. */
+      min-width: 36px;
+      min-height: 36px;
       padding: 0 0.4rem;
       font-size: 0.7rem;
       border-radius: 7px;
@@ -1368,10 +1376,6 @@
        the title's space. */
     .btn-icon .btn-label {
       display: none;
-    }
-    .btn-icon {
-      padding: 0 0.35rem;
-      min-width: 30px;
     }
 
     .editor-content {

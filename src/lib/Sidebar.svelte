@@ -307,11 +307,26 @@
     .sidebar.open {
       transform: translateX(0);
     }
+    /* When the drawer is closed, it must not capture pointer events
+       or block clicks on the underlying main content. Transform alone
+       moves it visually but pointer-events stay on by default — the
+       off-screen sidebar was intercepting taps on the hero / editor
+       on iPad (768px) where it sits translated -280px to the left.
+       `visibility: hidden` removes it from the hit-test, paints it
+       out, and removes it from the accessibility tree, all at once. */
+    .sidebar:not(.open) {
+      visibility: hidden;
+      pointer-events: none;
+    }
   }
 
   @media (max-width: 600px) {
+    /* Cap the drawer at 280px so it matches the desktop sidebar width,
+       and let very narrow phones (320px) take 85% of the viewport.
+       Previously used 320px which left no margin on small Android
+       (320px wide) and overlapped with content on 360px devices. */
     .sidebar {
-      width: min(85%, 320px);
+      width: min(85%, 280px);
     }
   }
 

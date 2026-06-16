@@ -7,6 +7,12 @@
     router.navigate(`/note/${id}`)
     if (uiStore.isMobile) uiStore.closeSidebar()
   }
+
+  // "or browse" opens the sidebar so the user can pick an existing
+  // note. On desktop the drawer is already visible so we no-op.
+  const handleBrowse = () => {
+    if (uiStore.isMobile) uiStore.openSidebar()
+  }
 </script>
 
 <div class="home">
@@ -19,7 +25,18 @@
 
     <div class="actions">
       <button class="btn" onclick={handleNewNote}>New note</button>
-      <a class="link" href="#/" aria-label="Browse existing notes">or browse</a>
+      <button
+        class="link"
+        type="button"
+        onclick={handleBrowse}
+        aria-label="Open notes browser"
+      >
+        or browse
+        <svg class="link-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M5 12h14" />
+          <path d="m12 5 7 7-7 7" />
+        </svg>
+      </button>
     </div>
   </div>
 </div>
@@ -104,18 +121,47 @@
   }
 
   .link {
-    color: var(--text-secondary);
+    /* Text-link affordance: a softer color than the primary CTA, an
+       inline arrow icon, and a generous tap area. The dotted underline
+       shows only on hover/focus to signal interactivity without
+       fighting the body text visually. */
+    color: var(--text-color);
+    opacity: 0.85;
     text-decoration: none;
     font-size: var(--font-size-base);
+    font-weight: 500;
     padding: var(--space-2) var(--space-3);
     border-radius: var(--radius-sm);
     border: 1px solid transparent;
+    background: transparent;
+    cursor: pointer;
+    font-family: inherit;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-height: 40px;
+    transition:
+      opacity var(--motion-fast) var(--ease-out),
+      background var(--motion-fast) var(--ease-out),
+      border-color var(--motion-fast) var(--ease-out);
   }
 
   .link:hover {
-    color: var(--text-color);
-    text-decoration: underline;
-    text-underline-offset: 3px;
+    opacity: 1;
+    color: var(--primary-color);
+    background: var(--hover-bg);
+  }
+
+  .link:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+  }
+
+  .link-arrow {
+    transition: transform var(--motion-fast) var(--ease-out);
+  }
+  .link:hover .link-arrow {
+    transform: translateX(2px);
   }
 
   @media (max-width: 600px) {

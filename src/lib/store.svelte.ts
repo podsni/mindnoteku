@@ -401,7 +401,10 @@ class UIStore {
 
   setMobile(mobile: boolean) {
     this.isMobile = mobile
-    // Auto-close sidebar on mobile by default
+    // Mobile (< 768px) and small tablets (768-1024) need an overlay
+    // drawer; desktops (>= 1024) keep a persistent collapsible drawer.
+    // Mobile & small tablets always start closed; the persistent desktop
+    // drawer remembers the user's last choice (default: open).
     if (mobile) {
       this.sidebarOpen = false
     } else {
@@ -409,6 +412,8 @@ class UIStore {
       const savedSidebar = localStorage.getItem('mindnote-sidebar')
       if (savedSidebar !== null) {
         this.sidebarOpen = savedSidebar === 'true'
+      } else {
+        this.sidebarOpen = true
       }
     }
   }

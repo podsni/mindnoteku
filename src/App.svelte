@@ -28,7 +28,11 @@
   }
 
   const checkMobile = () => {
-    uiStore.setMobile(window.innerWidth < 768)
+    // The sidebar uses an overlay drawer up to 1024px and a persistent
+    // drawer above that. Treat anything ≤ 1024 as "small viewport" so
+    // the FAB, backdrop click-to-close, and default-closed drawer all
+    // apply consistently across phones and small tablets.
+    uiStore.setMobile(window.innerWidth <= 1024)
   }
 
   function getToggleIcon(): 'menu' | 'close' {
