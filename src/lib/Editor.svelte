@@ -1057,13 +1057,13 @@
     }
 
     .editor-header {
-      padding: calc(env(safe-area-inset-top, 0px) + 0.6rem) 0.6rem 0.55rem 3.75rem;
-      gap: 0.45rem;
+      padding: calc(env(safe-area-inset-top, 0px) + 0.4rem) 0.5rem 0.35rem 3.4rem;
+      gap: 0.3rem;
     }
 
     .title-input {
-      height: 2.5rem;
-      font-size: 1.125rem;
+      height: 1.9rem;
+      font-size: 1.0625rem;
       line-height: 1.2;
       font-weight: 650;
       letter-spacing: -0.01em;
@@ -1072,29 +1072,30 @@
     .header-actions {
       width: 100%;
       max-width: 100%;
-      gap: 0.3rem;
+      gap: 0.25rem;
       padding-bottom: 0.125rem;
     }
 
     .btn-icon {
-      min-width: 40px;
-      min-height: 38px;
-      padding-inline: 0.5rem;
-      font-size: 0.72rem;
-      border-radius: 8px;
+      min-width: 36px;
+      min-height: 30px;
+      padding: 0 0.45rem;
+      font-size: 0.7rem;
+      border-radius: 7px;
       background: var(--card-bg);
       opacity: 0.95;
     }
 
-    /* On phone widths (<= 480px) hide button labels and keep icons only.
-       This buys back enough space that all 5 actions fit on one row. */
-    @media (max-width: 480px) {
+    /* Hide labels on phones (was 480px — now 600px so labels vanish
+       sooner and the row is a true icon strip). The hide/show toggle
+       keeps its label so the user knows what the button does. */
+    @media (max-width: 600px) {
       .btn-icon .btn-label {
         display: none;
       }
       .btn-icon {
-        padding-inline: 0.4rem;
-        min-width: 38px;
+        padding: 0 0.4rem;
+        min-width: 34px;
       }
     }
 
@@ -1112,7 +1113,7 @@
     .content-textarea {
       height: 100%;
       min-height: 0;
-      padding: 1rem 0.875rem calc(1rem + env(safe-area-inset-bottom, 0px));
+      padding: 0.75rem 0.75rem calc(0.75rem + env(safe-area-inset-bottom, 0px));
       font-size: 1rem;
       line-height: 1.58;
       font-family: var(--font-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif);

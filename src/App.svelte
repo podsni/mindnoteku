@@ -159,11 +159,11 @@
      and respects the safe-area inset. */
   .sidebar-toggle {
     position: fixed;
-    top: var(--space-3);
-    left: var(--space-3);
+    top: var(--space-2);
+    left: var(--space-2);
     z-index: 40;
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
     padding: 0;
     background: var(--card-bg);
     border: 1px solid var(--border-color);

@@ -310,19 +310,19 @@
 
   @media (max-width: 768px) {
     .toolbar {
-      padding: 0.4rem 0.5rem;
-      gap: 0.25rem;
+      padding: 0.3rem 0.5rem;
+      gap: 0.2rem;
     }
     .toolbar-separator {
-      height: 22px;
+      height: 18px;
       opacity: 0.55;
     }
     .toolbar-btn {
-      min-width: 38px;
-      min-height: 38px;
-      padding: 0.35rem 0.5rem;
-      border-radius: 8px;
-      font-size: 0.78rem;
+      min-width: 32px;
+      min-height: 30px;
+      padding: 0.25rem 0.4rem;
+      border-radius: 7px;
+      font-size: 0.72rem;
     }
     /* On phone widths, only show icons / no labels for the most
        space-hungry buttons. Keep the labels on Bold/Italic/Code since
