@@ -77,6 +77,25 @@ Subsequent pushes to `main` trigger automatic production deployments.
   HSTS, X-Content-Type-Options, X-Frame-Options, Referrer-Policy,
   Permissions-Policy, X-DNS-Prefetch-Control.
 
+## Deployment Protection
+
+Vercel may enable **Deployment Protection** for a project. When on, every
+request to a deployment URL returns `401 Authentication Required` and
+redirects to a Vercel login page, even for the project owner.
+
+To turn it off: Vercel dashboard → **Project → Settings → Deployment
+Protection → Vercel Authentication → Disabled**.
+
+If protection is on, you can still access the deployment for testing:
+
+```bash
+# Bypasses the auth wall using the CLI's own token
+vercel curl https://<deployment-url>/
+```
+
+`vercel curl` will auto-generate a short-lived protection bypass token.
+This is useful for smoke tests but does not work for end users.
+
 ## Smoke test after deploy
 
 1. Open the production URL.
