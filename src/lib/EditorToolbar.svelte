@@ -274,6 +274,18 @@
     flex: 0 0 auto;
   }
 
+  /* Inner icon/letter glyphs inside toolbar buttons. The Link/Img/Table
+     buttons use Unicode symbols (↗ ▣ ▦) which inherit the system font
+     and render at a different size than the B/I/S letters — normalise
+     them so all 11 buttons have visually consistent glyphs. */
+  .toolbar-btn > span {
+    font-size: 0.95rem;
+    line-height: 1;
+    display: inline-block;
+    min-width: 1ch;
+    text-align: center;
+  }
+
   .toolbar-dropdown {
     position: relative;
   }
