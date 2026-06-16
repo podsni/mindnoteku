@@ -33,6 +33,11 @@
   }
   let showToolbar = $state(true)
 
+  // Per-note download menu — opens a small popover offering Markdown
+  // (.md) or plain text (.txt) export of the current note. The menu
+  // closes when the user picks a format or clicks outside.
+  let showDownloadMenu = $state(false)
+
   // Lazy-loaded components (mermaid, markdown rendering, outline). Keeps
   // the initial route bundle small — the editor mounts empty chrome first
   // and these arrive on demand when the user enables them.
@@ -165,6 +170,88 @@
   const toggleToolbar = () => {
     showToolbar = !showToolbar
     try { localStorage.setItem(TOOLBAR_KEY, String(showToolbar)) } catch {}
+  }
+
+  /** Strip markdown syntax to produce a plain-text version of the note
+      body. Used by the .txt download. Keeps the content readable as
+      raw text without trying to be a full markdown-to-text converter. */
+  const stripMarkdown = (md: string): string => {
+    return md
+      // Remove code fences ```lang ... ```
+      .replace(/```[\s\S]*?```/g, (block) => block.replace(/```\w*\n?/g, '').replace(/```/g, ''))
+      // Remove inline code backticks
+      .replace(/`([^`]+)`/g, '$1')
+      // Images: ![alt](url) → alt
+      .replace(/!\[([^\]]*)\]\([^)]*\)/g, '$1')
+      // Links: [text](url) → text
+      .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+      // Bold/italic/strike markers
+      .replace(/\*\*([^*]+)\*\*/g, '$1')
+      .replace(/__([^_]+)__/g, '$1')
+      .replace(/\*([^*]+)\*/g, '$1')
+      .replace(/_([^_]+)_/g, '$1')
+      .replace(/~~([^~]+)~~/g, '$1')
+      // Heading hashes
+      .replace(/^#{1,6}\s+/gm, '')
+      // Blockquote markers
+      .replace(/^>\s?/gm, '')
+      // Unordered list markers
+      .replace(/^[-*+]\s+/gm, '• ')
+      // Ordered list markers
+      .replace(/^\d+\.\s+/gm, '')
+      // Horizontal rules
+      .replace(/^[-*_]{3,}$/gm, '')
+      // Task list checkboxes
+      .replace(/\[[ xX]\]\s*/g, '')
+      .trim()
+  }
+
+  /** Sanitize a note title for use as a filename. Replaces characters
+      that are invalid on Windows/macOS with hyphens and trims
+      whitespace. Falls back to 'note' if the result is empty. */
+  const sanitizeFilename = (title: string): string => {
+    const cleaned = title
+      .replace(/[\\/:*?"<>|]+/g, '-')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, 80)
+    return cleaned || 'note'
+  }
+
+  const downloadNoteAs = (format: 'md' | 'txt') => {
+    if (!notesStore.currentNote) return
+    const note = notesStore.currentNote
+    const filename = sanitizeFilename(note.title) + '.' + format
+    const body = format === 'md' ? note.content : stripMarkdown(note.content)
+
+    // Prepend the title as a heading in markdown; in plain text, just
+    // a separator line so the document is recognisable.
+    const fullContent =
+      format === 'md'
+        ? `# ${note.title}\n\n${body}\n`
+        : `${note.title}\n${'='.repeat(Math.min(60, note.title.length))}\n\n${body}\n`
+
+    const mime = format === 'md' ? 'text/markdown' : 'text/plain'
+    const blob = new Blob([fullContent], { type: mime + ';charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    // Defer revoke so the browser has time to start the download
+    setTimeout(() => URL.revokeObjectURL(url), 1000)
+
+    showDownloadMenu = false
+  }
+
+  const toggleDownloadMenu = () => {
+    showDownloadMenu = !showDownloadMenu
+  }
+
+  const closeDownloadMenu = () => {
+    showDownloadMenu = false
   }
 
   // Toolbar action handlers
@@ -422,6 +509,19 @@
   onMount(() => {
     showToolbar = readToolbarPref()
     titleInput?.focus()
+
+    // Close the download popover when the user clicks anywhere outside
+    // it. Bound to `pointerdown` so it fires before the click that would
+    // re-open the menu (which lives inside the wrapper).
+    const onDocPointerDown = (e: PointerEvent) => {
+      if (!showDownloadMenu) return
+      const target = e.target as HTMLElement | null
+      if (target && !target.closest('.download-wrapper')) {
+        showDownloadMenu = false
+      }
+    }
+    document.addEventListener('pointerdown', onDocPointerDown)
+    return () => document.removeEventListener('pointerdown', onDocPointerDown)
   })
 
   // Cleanup on unmount
@@ -495,6 +595,41 @@
           <Icon name={notesStore.currentNote.pinned ? 'pinned' : 'pin'} size={16} strokeWidth={notesStore.currentNote.pinned ? 0 : 1.75} />
           <span class="btn-label" aria-hidden="true">{notesStore.currentNote.pinned ? 'Pinned' : 'Pin'}</span>
         </button>
+        <div class="download-wrapper">
+          <button
+            onclick={toggleDownloadMenu}
+            class="btn-icon btn-download"
+            class:active={showDownloadMenu}
+            title="Download this note"
+            aria-haspopup="menu"
+            aria-expanded={showDownloadMenu}
+          >
+            <Icon name="download" size={16} strokeWidth={1.75} />
+            <span class="btn-label" aria-hidden="true">Download</span>
+          </button>
+          {#if showDownloadMenu}
+            <div class="download-menu" role="menu">
+              <button
+                type="button"
+                class="download-option"
+                role="menuitem"
+                onclick={() => downloadNoteAs('md')}
+              >
+                <span class="download-fmt">.md</span>
+                <span class="download-desc">Markdown</span>
+              </button>
+              <button
+                type="button"
+                class="download-option"
+                role="menuitem"
+                onclick={() => downloadNoteAs('txt')}
+              >
+                <span class="download-fmt">.txt</span>
+                <span class="download-desc">Plain text</span>
+              </button>
+            </div>
+          {/if}
+        </div>
         <button
           onclick={handleDelete}
           class="btn-icon btn-delete"
@@ -748,6 +883,74 @@
   .btn-icon.btn-pin[aria-pressed='true'] {
     color: var(--primary-color);
     border-color: var(--primary-color);
+  }
+
+  .btn-icon.btn-download[aria-expanded='true'] {
+    background: var(--card-bg);
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+  }
+
+  /* Download popover — sits below the trigger button and is right-aligned
+     so it doesn't get clipped by the right edge of the viewport on
+     narrow phones. Two stacked options: Markdown and plain text. */
+  .download-wrapper {
+    position: relative;
+    flex: 0 0 auto;
+  }
+  .download-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    min-width: 170px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    padding: 0.35rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    z-index: 50;
+  }
+  .download-option {
+    appearance: none;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.6rem;
+    padding: 0.5rem 0.65rem;
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    color: var(--text-color);
+    font: inherit;
+    font-size: 0.78rem;
+    font-weight: 500;
+    cursor: pointer;
+    text-align: left;
+    min-height: 32px;
+    transition: background var(--motion-fast) var(--ease-out);
+  }
+  .download-option:hover,
+  .download-option:focus-visible {
+    background: var(--hover-bg);
+    outline: none;
+  }
+  .download-fmt {
+    font-weight: 700;
+    color: var(--primary-color);
+    min-width: 32px;
+    text-align: center;
+    background: color-mix(in srgb, var(--primary-color) 14%, transparent);
+    padding: 0.1rem 0.35rem;
+    border-radius: 4px;
+    font-size: 0.72rem;
+    letter-spacing: 0.02em;
+  }
+  .download-desc {
+    color: var(--text-secondary);
+    font-weight: 400;
   }
 
   .btn-icon.btn-delete:hover {
