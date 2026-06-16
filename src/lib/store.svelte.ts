@@ -141,7 +141,8 @@ class NotesStore {
   }
 
   // Update note with debouncing (optimized - no full refresh)
-  private updateTimeout: number | null = null
+  private updateTimeouts = new Map<number, number>()
+  private pendingUpdates = new Map<number, Partial<Note>>()
   
   async updateNote(id: number, updates: Partial<Note>) {
     // Debounce: update local state immediately (instant UI response)
@@ -178,20 +179,31 @@ class NotesStore {
       this.applyNotes(resorted)
     }
     
-    // Clear previous timeout
-    if (this.updateTimeout) {
-      clearTimeout(this.updateTimeout)
+    const pending = {
+      ...(this.pendingUpdates.get(id) ?? {}),
+      ...updates
+    }
+    this.pendingUpdates.set(id, pending)
+
+    const existingTimeout = this.updateTimeouts.get(id)
+    if (existingTimeout) {
+      clearTimeout(existingTimeout)
     }
 
     // Debounce save to IndexedDB (500ms) - only persist, no refresh
-    this.updateTimeout = setTimeout(async () => {
+    const timeout = setTimeout(async () => {
       try {
-        await noteService.updateNote(id, updates)
+        const mergedUpdates = this.pendingUpdates.get(id)
+        if (!mergedUpdates) return
+        this.pendingUpdates.delete(id)
+        this.updateTimeouts.delete(id)
+        await noteService.updateNote(id, mergedUpdates)
         // No full refresh needed - local state already updated!
       } catch (error) {
         console.error('Failed to update note:', error)
       }
     }, 500) as unknown as number
+    this.updateTimeouts.set(id, timeout)
   }
 
   // Delete note (optimized - remove from list locally)

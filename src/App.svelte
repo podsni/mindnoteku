@@ -99,7 +99,7 @@
 
   <OfflineIndicator />
 
-  {#if uiStore.isMobile}
+  {#if uiStore.isMobile && currentRoute.path === '/'}
     <button
       class="fab"
       onclick={async () => {

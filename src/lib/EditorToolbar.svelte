@@ -118,7 +118,7 @@
       title="Unordered List"
       onclick={() => onList?.(false)}
     >
-      ☰
+      •
     </button>
     
     <button
@@ -136,7 +136,7 @@
       title="Task List"
       onclick={onCheckbox}
     >
-      ☑
+      [ ]
     </button>
   </div>
   
@@ -150,7 +150,7 @@
       title="Insert Link (Ctrl+K)"
       onclick={onLink}
     >
-      🔗
+      Link
     </button>
     
     <button
@@ -159,7 +159,7 @@
       title="Insert Image"
       onclick={onImage}
     >
-      🖼️
+      Img
     </button>
     
     <button
@@ -168,7 +168,7 @@
       title="Insert Table"
       onclick={onTable}
     >
-      ⊞
+      Table
     </button>
   </div>
 </div>
@@ -181,24 +181,38 @@
     background-color: var(--bg-secondary);
     border-bottom: 1px solid var(--border-color);
     gap: 8px;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: visible;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .toolbar::-webkit-scrollbar {
+    display: none;
   }
   
   .toolbar-group {
     display: flex;
     gap: 4px;
     align-items: center;
+    flex: 0 0 auto;
   }
   
   .toolbar-btn {
+    min-width: 38px;
+    min-height: 38px;
     padding: 6px 10px;
     background: var(--btn-bg);
     border: 1px solid var(--border-color);
-    border-radius: 4px;
+    border-radius: 7px;
     cursor: pointer;
-    font-size: 14px;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
     transition: all 0.2s;
     color: var(--text-primary);
+    white-space: nowrap;
   }
   
   .toolbar-btn:hover {
@@ -273,5 +287,39 @@
     --btn-bg: var(--bg-color);
     --btn-hover: var(--hover-bg);
     --hover-bg: var(--hover-bg);
+  }
+
+  @media (max-width: 768px) {
+    .toolbar {
+      padding: 0.5rem 0.75rem;
+      gap: 0.375rem;
+      background: var(--bg-color);
+    }
+
+    .toolbar-separator {
+      height: 24px;
+      opacity: 0.55;
+    }
+
+    .toolbar-btn {
+      min-width: 40px;
+      min-height: 40px;
+      padding-inline: 0.625rem;
+      border-radius: 9px;
+      background: var(--card-bg);
+      font-size: 0.82rem;
+    }
+
+    .dropdown-menu {
+      position: fixed;
+      left: 0.75rem;
+      right: 0.75rem;
+      top: auto;
+      bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+      min-width: 0;
+      border-radius: 12px;
+      overflow: hidden;
+      z-index: 1001;
+    }
   }
 </style>

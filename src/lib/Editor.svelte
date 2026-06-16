@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte'
   import type { Component } from 'svelte'
-  import { notesStore, uiStore } from './store.svelte'
+  import { notesStore } from './store.svelte'
   import { router } from './router'
   import { noteService, type NoteMetadata } from './db'
   import EditorToolbar from './EditorToolbar.svelte'
@@ -75,6 +75,8 @@
     backlinks = await noteService.getBacklinks(noteId)
   }
 
+  const countWords = (text: string) => text.split(/\s+/).filter((word) => word.length > 0).length
+
   const handleTitleChange = (e: Event) => {
     const target = e.target as HTMLInputElement
     const noteId = parseInt(id)
@@ -94,8 +96,7 @@
     if (!isNaN(noteId)) {
       notesStore.updateNote(noteId, { content: target.value })
     }
-    // Auto-resize textarea on mobile
-    autoResizeTextarea(target)
+
   }
 
   // Update content from commands
@@ -402,21 +403,9 @@
     }
   }
 
-  // Auto-resize textarea for mobile
-  const autoResizeTextarea = (textarea: HTMLTextAreaElement) => {
-    if (uiStore.isMobile) {
-      textarea.style.height = 'auto'
-      textarea.style.height = textarea.scrollHeight + 'px'
-    }
-  }
-
   // Focus title on mount
   onMount(() => {
     titleInput?.focus()
-    // Initial textarea resize
-    if (contentTextarea) {
-      autoResizeTextarea(contentTextarea)
-    }
   })
 
   // Cleanup on unmount
@@ -443,7 +432,7 @@
           class:active={showOutline}
           title={showOutline ? 'Hide outline' : 'Show outline (TOC)'}
         >
-          📋
+          <span aria-hidden="true">TOC</span>
         </button>
         <button 
           onclick={toggleSplitView} 
@@ -451,7 +440,7 @@
           class:active={splitView}
           title={splitView ? 'Exit split view' : 'Split view (editor ⬅➡ preview)'}
         >
-          ⬅➡
+          <span aria-hidden="true">Split</span>
         </button>
         <button 
           onclick={togglePreview} 
@@ -459,7 +448,7 @@
           class:active={previewMode}
           title={previewMode ? 'Edit mode' : 'Preview mode'}
         >
-          {previewMode ? '✏️' : '👁️'}
+          <span aria-hidden="true">{previewMode ? 'Edit' : 'View'}</span>
         </button>
         <button 
           onclick={handleTogglePin} 
@@ -467,10 +456,10 @@
           class:pinned={notesStore.currentNote.pinned}
           title={notesStore.currentNote.pinned ? 'Unpin note' : 'Pin note'}
         >
-          {notesStore.currentNote.pinned ? '📍' : '📌'}
+          <span aria-hidden="true">{notesStore.currentNote.pinned ? 'Pinned' : 'Pin'}</span>
         </button>
         <button onclick={handleDelete} class="btn-delete" title="Delete note">
-          🗑️
+          <span aria-hidden="true">Delete</span>
         </button>
       </div>
     </div>
@@ -517,25 +506,7 @@
                 onpaste={handlePaste}
                 onkeydown={handleKeyDown}
                 onscroll={handleEditorScroll}
-                placeholder="Start writing your note... 
-
-✨ Shortcuts:
-• Ctrl+B: Bold
-• Ctrl+I: Italic
-• Ctrl+Shift+X: Strikethrough
-• Ctrl+`: Code
-• Ctrl+K: Link
-• Tab/Shift+Tab: Indent/Unindent lists
-
-📝 Features:
-• Drag & drop images
-• Paste images from clipboard
-• Type image URL and it will auto-convert
-• Headers: # H1, ## H2, ### H3
-• Links: [[note-title]] or [text](url)
-• Math: $inline$, $$block$$
-• Mermaid: ```mermaid
-• Lists: - bullet, 1. numbered, - [ ] task"
+                placeholder="Start writing..."
               ></textarea>
             </div>
             <div class="split-divider"></div>
@@ -564,25 +535,7 @@
               oninput={handleContentChange}
               onpaste={handlePaste}
               onkeydown={handleKeyDown}
-              placeholder="Start writing your note... 
-
-✨ Shortcuts:
-• Ctrl+B: Bold
-• Ctrl+I: Italic
-• Ctrl+Shift+X: Strikethrough
-• Ctrl+`: Code
-• Ctrl+K: Link
-• Tab/Shift+Tab: Indent/Unindent lists
-
-📝 Features:
-• Drag & drop images
-• Paste images from clipboard
-• Type image URL and it will auto-convert
-• Headers: # H1, ## H2, ### H3
-• Links: [[note-title]] or [text](url)
-• Math: $inline$, $$block$$
-• Mermaid: ```mermaid
-• Lists: - bullet, 1. numbered, - [ ] task"
+              placeholder="Start writing..."
             ></textarea>
             {#if showOutline && OutlineViewComp}
               <div class="outline-sidebar">
@@ -596,7 +549,7 @@
       {#if isDragging}
         <div class="drag-overlay">
           <div class="drag-message">
-            📁 Drop files here to embed
+            Drop files here to embed
           </div>
         </div>
       {/if}
@@ -605,13 +558,13 @@
     <div class="editor-footer">
       <div class="footer-left">
         <span class="word-count" title="Detailed statistics">
-          📊 {localContent.split(/\s+/).filter(w => w.length > 0).length} words · 
+          {countWords(localContent)} words · 
           {localContent.length} characters · 
           {localContent.replace(/\s/g, '').length} chars (no spaces)
         </span>
         {#if backlinks.length > 0}
           <span class="backlinks-count" title="Notes linking to this note">
-            🔗 {backlinks.length} backlink{backlinks.length > 1 ? 's' : ''}
+            {backlinks.length} backlink{backlinks.length > 1 ? 's' : ''}
           </span>
         {/if}
       </div>
@@ -636,27 +589,19 @@
     {/if}
   {:else}
     <div class="editor-empty">
-      <div class="empty-icon">📝</div>
+      <div class="empty-icon">Note</div>
       <h2>No note selected</h2>
       <p>Select a note from the sidebar or create a new one</p>
     </div>
   {/if}
 
-  <!-- FAB (Floating Action Button) for mobile -->
-  {#if uiStore.isMobile}
-    <button class="fab" onclick={handleNewNote} title="New note">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <line x1="12" y1="5" x2="12" y2="19"></line>
-        <line x1="5" y1="12" x2="19" y2="12"></line>
-      </svg>
-    </button>
-  {/if}
 </div>
 
 <style>
   .editor {
     flex: 1;
     height: 100vh;
+    height: 100dvh;
     display: flex;
     flex-direction: column;
     background: var(--bg-color);
@@ -672,6 +617,8 @@
     display: flex;
     gap: 1rem;
     align-items: center;
+    min-width: 0;
+    flex-shrink: 0;
   }
 
   /* On mobile, reset padding */
@@ -685,6 +632,7 @@
     display: flex;
     gap: 0.5rem;
     flex-shrink: 0;
+    min-width: 0;
   }
 
   .editor-content {
@@ -740,6 +688,8 @@
   .edit-container {
     display: flex;
     flex: 1;
+    min-height: 0;
+    min-width: 0;
     overflow: hidden;
   }
 
@@ -821,6 +771,9 @@
     outline: none;
     padding: 0;
     transition: color 0.3s;
+    min-width: 0;
+    width: 100%;
+    text-overflow: ellipsis;
   }
 
   .title-input::placeholder {
@@ -834,12 +787,21 @@
   .btn-delete {
     background: transparent;
     border: 1px solid var(--border-color);
-    font-size: 1.2rem;
+    font: inherit;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
     cursor: pointer;
     opacity: 0.7;
     transition: all 0.2s;
-    padding: 0.5rem;
-    border-radius: 4px;
+    min-height: 36px;
+    padding: 0 0.65rem;
+    border-radius: var(--radius-sm);
+    color: var(--text-color);
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .btn-outline:hover,
@@ -898,6 +860,8 @@
     outline: none;
     font-family: 'Segoe UI', system-ui, sans-serif;
     transition: all 0.3s ease;
+    min-width: 0;
+    min-height: 0;
   }
 
   .content-textarea::placeholder {
@@ -1017,36 +981,6 @@
     font-size: 1rem;
   }
 
-  /* FAB (Floating Action Button) */
-  .fab {
-    position: fixed;
-    bottom: 2rem;
-    right: 2rem;
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    background: var(--primary-color);
-    border: none;
-    color: white;
-    box-shadow: 0 4px 12px rgba(0, 122, 204, 0.4);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s;
-    z-index: 100;
-  }
-
-  .fab:hover {
-    background: var(--primary-hover);
-    transform: scale(1.1);
-    box-shadow: 0 6px 16px rgba(0, 122, 204, 0.6);
-  }
-
-  .fab:active {
-    transform: scale(0.95);
-  }
-
   /* Mobile optimizations */
   @media (max-width: 768px) {
     .editor-header {
@@ -1069,13 +1003,6 @@
       font-size: 0.75rem;
       flex-direction: column;
       gap: 0.25rem;
-    }
-
-    .fab {
-      bottom: 1.5rem;
-      right: 1.5rem;
-      width: 60px;
-      height: 60px;
     }
 
     /* Disable split view on mobile, stack vertically instead */
@@ -1107,6 +1034,99 @@
     .content-textarea {
       padding: 0.75rem;
       font-size: 0.95rem;
+    }
+  }
+
+  /* Phone editor: make the chrome fit the device instead of wrapping like desktop. */
+  @media (max-width: 768px) {
+    .editor {
+      overflow: hidden;
+    }
+
+    .editor-header {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      align-items: start;
+      gap: 0.5rem;
+      padding: calc(max(0px, env(safe-area-inset-top, 0px)) + 0.75rem) 0.75rem 0.65rem 4rem;
+      min-height: 4rem;
+      background: var(--bg-color);
+    }
+
+    .title-input {
+      height: 2.5rem;
+      font-size: 1.125rem;
+      line-height: 1.2;
+      font-weight: 650;
+      letter-spacing: -0.01em;
+    }
+
+    .header-actions {
+      width: 100%;
+      max-width: 100%;
+      overflow-x: auto;
+      overflow-y: hidden;
+      gap: 0.375rem;
+      padding-bottom: 0.125rem;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .header-actions::-webkit-scrollbar {
+      display: none;
+    }
+
+    .btn-outline,
+    .btn-split,
+    .btn-preview,
+    .btn-pin,
+    .btn-delete {
+      min-width: 42px;
+      min-height: 38px;
+      padding-inline: 0.625rem;
+      font-size: 0.72rem;
+      border-radius: 9px;
+      background: var(--card-bg);
+      opacity: 0.9;
+    }
+
+    .btn-split,
+    .btn-outline {
+      display: none;
+    }
+
+    .editor-content {
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .edit-container,
+    .split-container {
+      min-height: 0;
+      min-width: 0;
+    }
+
+    .content-textarea {
+      height: 100%;
+      min-height: 0;
+      padding: 1rem 0.875rem calc(1rem + env(safe-area-inset-bottom, 0px));
+      font-size: 1rem;
+      line-height: 1.58;
+      font-family: var(--font-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif);
+      overflow-y: auto;
+      overflow-x: hidden;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .content-textarea::placeholder {
+      color: var(--text-secondary);
+      opacity: 0.85;
+    }
+
+    .editor-footer,
+    .backlinks-section {
+      display: none;
     }
   }
 </style>
