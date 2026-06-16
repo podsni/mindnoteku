@@ -1103,13 +1103,13 @@
     .editor-header {
       /* Single-row layout on mobile: title-input on the left flexes to
          fill, action buttons on the right are a fixed-width icon strip.
-         The 3.5rem left padding clears the floating 36×36 sidebar
-         toggle (which sits at left:12 + width:36 = 48px) with an 8px
-         breathing gap. The top padding respects the iPhone notch via
+         The 3rem left padding clears the floating 32×32 sidebar toggle
+         (which sits at left:12 + width:32 = 44px) with a 4px breathing
+         gap. The top padding respects the iPhone notch via
          env(safe-area-inset-top); both vertical paddings are kept to
          the minimum so the writing area below gets as much room as
          possible. */
-      padding: calc(env(safe-area-inset-top, 0px) + 0.25rem) 0.5rem 0.25rem 3.5rem;
+      padding: calc(env(safe-area-inset-top, 0px) + 0.25rem) 0.5rem 0.25rem 3rem;
       gap: 0.4rem;
       flex-direction: row;
       align-items: center;

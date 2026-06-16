@@ -31,6 +31,10 @@
     uiStore.setMobile(window.innerWidth < 768)
   }
 
+  function getToggleIcon(): 'menu' | 'close' {
+    return uiStore.sidebarOpen ? 'close' : 'menu'
+  }
+
   onMount(() => {
     notesStore.loadNotes()
     checkMobile()
@@ -73,7 +77,7 @@
     aria-expanded={uiStore.sidebarOpen}
     title={uiStore.sidebarOpen ? 'Close sidebar (⌘B)' : 'Open sidebar (⌘B)'}
   >
-    <Icon name={uiStore.sidebarOpen ? 'close' : 'menu'} size={18} strokeWidth={2} />
+    <Icon name={getToggleIcon()} size={16} strokeWidth={2} />
   </button>
 
   {#if uiStore.sidebarOpen && uiStore.isMobile}
@@ -153,21 +157,26 @@
     }
   }
 
-  /* Sidebar toggle — small fixed button that floats above the page.
+  /* Sidebar toggle — quiet icon button that floats above the page.
      On desktop it nudges to the right of the open sidebar so it doesn't
      overlap the brand mark. On mobile it stays in the top-left corner
-     and respects the safe-area inset. */
+     and respects the safe-area inset. Sized to be visually quiet (32px)
+     so the title and action buttons own the user's attention; a soft
+     hover background appears on tap without competing for chrome. */
   .sidebar-toggle {
     position: fixed;
     top: var(--space-2);
     left: var(--space-2);
     z-index: 40;
-    width: 36px;
-    height: 36px;
+    width: 32px;
+    height: 32px;
+    min-height: 0; /* override the mobile `button { min-height: 44px }`
+                      rule that would otherwise double the size on
+                      phones and push the toggle into the title row */
     padding: 0;
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-sm);
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 8px;
     color: var(--text-color);
     display: grid;
     place-items: center;
@@ -179,6 +188,7 @@
     transition:
       background var(--motion-fast) var(--ease-out),
       color var(--motion-fast) var(--ease-out),
+      border-color var(--motion-fast) var(--ease-out),
       transform var(--motion-base) var(--ease-out);
   }
 
