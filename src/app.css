@@ -834,6 +834,182 @@ button:focus-visible {
 [data-font="system"] .editor-text,
 [data-font="system"] .editor-title,
 [data-font="system"] textarea {
-  font-family: system-ui, -apple-system, sans-serif !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui,
+    'Helvetica Neue', sans-serif !important;
   line-height: 1.6 !important;
+}
+
+/* ===== GLOBAL DESIGN TOKENS — layout, type, spacing, focus =====
+   These are independent of theme variables; per-theme styles above
+   continue to control color/spacing of themed surfaces. */
+
+:root {
+  /* Type scale */
+  --font-size-xs: 0.75rem;   /* 12 */
+  --font-size-sm: 0.8125rem; /* 13 */
+  --font-size-base: 0.875rem;/* 14 */
+  --font-size-md: 0.9375rem; /* 15 */
+  --font-size-lg: 1rem;      /* 16 */
+  --font-size-xl: 1.125rem;  /* 18 */
+  --font-size-2xl: 1.375rem; /* 22 */
+  --font-size-3xl: 1.75rem;  /* 28 */
+  --font-size-4xl: 2.25rem;  /* 36 */
+  --font-size-5xl: 3rem;     /* 48 */
+
+  /* Spacing */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+
+  /* Radius */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  --radius-xl: 14px;
+  --radius-pill: 999px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 2px 6px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.08);
+
+  /* Motion */
+  --motion-fast: 120ms;
+  --motion-base: 200ms;
+  --motion-slow: 320ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Layout */
+  --sidebar-width: 280px;
+  --topbar-height: 52px;
+
+  color-scheme: dark;
+}
+
+/* Reset & base */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  overflow: hidden;
+  /* System UI stack first. Inter and Roboto are overused on agent-built
+     sites; relying on the OS font makes the chrome feel native and avoids
+     the overused-font smell. The editorial faces (IBM Plex Sans) stay
+     available as a deliberate choice via [data-font] below. */
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui,
+    'Helvetica Neue', sans-serif;
+  font-size: var(--font-size-md);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+#app {
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh; /* dynamic viewport for mobile */
+  margin: 0;
+  padding: 0;
+}
+
+/* Accessible focus ring everywhere */
+:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* Buttons get a minimum hit area, even if label is short */
+button {
+  min-height: 36px;
+  font-family: inherit;
+}
+
+@media (max-width: 768px) {
+  button {
+    min-height: 44px; /* Apple HIG / WCAG touch target */
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Safe area insets for notched phones */
+@supports (padding: env(safe-area-inset-left)) {
+  .app-safe-left { padding-left: env(safe-area-inset-left); }
+  .app-safe-right { padding-right: env(safe-area-inset-right); }
+  .app-safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+}
+
+/* Scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-color) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: var(--radius-pill);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+  background-clip: padding-box;
+  border: 2px solid transparent;
+}
+
+/* Theme changing animation */
+#app.theme-changing {
+  animation: themeTransition 0.4s ease;
+}
+
+@keyframes themeTransition {
+  0% { opacity: 1; }
+  50% { opacity: 0.85; }
+  100% { opacity: 1; }
+}
+
+/* Editor font size variable */
+:root {
+  --editor-font-size: 16px;
 }

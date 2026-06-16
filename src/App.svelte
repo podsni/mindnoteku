@@ -8,53 +8,44 @@
   import { router } from './lib/router'
   import { initTouchHandlers } from './lib/touchHandler.svelte'
   import { registerSW } from 'virtual:pwa-register'
+  import Icon from './lib/Icons.svelte'
 
   let currentRoute = $state<{ path: string; params: Record<string, string> }>({ path: '/', params: {} })
 
-  // Subscribe to route changes
   router.subscribe(route => {
     currentRoute = route
   })
 
-  // Handle keyboard shortcuts
   const handleKeydown = (e: KeyboardEvent) => {
-    // Ctrl+B or Cmd+B to toggle sidebar
     if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
       e.preventDefault()
       uiStore.toggleSidebar()
     }
   }
 
-  // Handle backdrop click
   const handleBackdropClick = () => {
-    if (uiStore.isMobile) {
-      uiStore.closeSidebar()
-    }
+    if (uiStore.isMobile) uiStore.closeSidebar()
   }
 
-  // Check screen size and set mobile state
   const checkMobile = () => {
     uiStore.setMobile(window.innerWidth < 768)
   }
 
-  // Load notes on app startup
   onMount(() => {
     notesStore.loadNotes()
     checkMobile()
-    uiStore.loadTheme() // Load saved theme
-    uiStore.loadFont() // Load saved font
-    uiStore.loadFontSize() // Load saved font size
-    
+    uiStore.loadTheme()
+    uiStore.loadFont()
+    uiStore.loadFontSize()
+
     window.addEventListener('resize', checkMobile)
     window.addEventListener('keydown', handleKeydown)
-    
-    // Initialize touch handlers for swipe gestures
+
     const cleanupTouch = initTouchHandlers()
 
-    // Register Service Worker for PWA
     const updateSW = registerSW({
       onNeedRefresh() {
-        if (confirm('New version available! Reload to update?')) {
+        if (confirm('New version available. Reload to update?')) {
           updateSW(true)
         }
       },
@@ -71,37 +62,23 @@
   })
 </script>
 
-<div class="app">
+<div class="app" class:sidebar-open={uiStore.sidebarOpen && !uiStore.isMobile}>
   <Sidebar />
-  
-  <!-- Toggle Button (compact & smart positioning) -->
-  <button 
-    class="sidebar-toggle" 
+
+  <button
+    class="sidebar-toggle"
     class:sidebar-open={uiStore.sidebarOpen && !uiStore.isMobile}
     onclick={() => uiStore.toggleSidebar()}
-    aria-label="Toggle sidebar"
-    title={uiStore.sidebarOpen ? 'Close sidebar (Ctrl+B)' : 'Open sidebar (Ctrl+B)'}
+    aria-label={uiStore.sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
+    aria-expanded={uiStore.sidebarOpen}
+    title={uiStore.sidebarOpen ? 'Close sidebar (⌘B)' : 'Open sidebar (⌘B)'}
   >
-    {#if uiStore.sidebarOpen}
-      <!-- Close icon when sidebar is open -->
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
-        <line x1="18" y1="6" x2="6" y2="18"></line>
-        <line x1="6" y1="6" x2="18" y2="18"></line>
-      </svg>
-    {:else}
-      <!-- Menu icon when sidebar is closed -->
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
-        <line x1="4" y1="6" x2="20" y2="6"></line>
-        <line x1="4" y1="12" x2="20" y2="12"></line>
-        <line x1="4" y1="18" x2="20" y2="18"></line>
-      </svg>
-    {/if}
+    <Icon name={uiStore.sidebarOpen ? 'close' : 'menu'} size={18} strokeWidth={2} />
   </button>
 
-  <!-- Backdrop for mobile -->
   {#if uiStore.sidebarOpen && uiStore.isMobile}
-    <div 
-      class="backdrop" 
+    <div
+      class="backdrop"
       onclick={handleBackdropClick}
       onkeydown={(e) => e.key === 'Escape' && handleBackdropClick()}
       role="button"
@@ -109,8 +86,8 @@
       aria-label="Close sidebar"
     ></div>
   {/if}
-  
-  <main class="main-content" class:sidebar-open={uiStore.sidebarOpen && !uiStore.isMobile}>
+
+  <main class="main-content">
     {#if currentRoute.path === '/'}
       <Home />
     {:else if currentRoute.path === '/note/:id' && currentRoute.params.id}
@@ -120,20 +97,18 @@
     {/if}
   </main>
 
-  <!-- Offline Indicator -->
   <OfflineIndicator />
 
-  <!-- FAB (Floating Action Button) for mobile -->
   {#if uiStore.isMobile}
-    <button 
-      class="fab" 
+    <button
+      class="fab"
       onclick={async () => {
-        const id = await notesStore.createNote('New Note', '')
+        const id = await notesStore.createNote('Untitled', '')
         router.navigate(`/note/${id}`)
       }}
       aria-label="Create new note"
     >
-      +
+      <Icon name="plus" size={24} strokeWidth={2.25} />
     </button>
   {/if}
 </div>
@@ -142,100 +117,117 @@
   .app {
     display: flex;
     height: 100vh;
+    height: 100dvh;
     overflow: hidden;
     background: var(--bg-color);
     color: var(--text-color);
     position: relative;
-    transition: background-color 0.3s, color 0.3s;
+    transition: background-color var(--motion-base), color var(--motion-base);
+  }
+
+  /* Use grid-template-columns on desktop so the sidebar takes layout space
+     without animating layout properties. Width animates on the
+     `grid-template-columns` shorthand which the browser can promote to
+     compositor-only on Chromium/Firefox. */
+  @media (min-width: 1025px) {
+    .app {
+      --app-sidebar-col: 0fr;
+      --app-main-col: 1fr;
+      display: grid;
+      grid-template-columns:
+        var(--app-sidebar-col)
+        var(--app-main-col);
+      transition:
+        grid-template-columns var(--motion-base) var(--ease-out),
+        background-color var(--motion-base),
+        color var(--motion-base);
+    }
+    .app.sidebar-open {
+      --app-sidebar-col: var(--sidebar-width);
+      --app-main-col: 1fr;
+    }
   }
 
   .main-content {
     flex: 1;
+    min-width: 0;
     display: flex;
     overflow: hidden;
-    transition: margin-left 0.3s ease;
   }
 
-  /* Add margin when sidebar is open on desktop */
+  /* On desktop, the .app becomes a grid container; the sidebar <aside> is
+     a direct grid child and the .main-content is the second column.
+     Reset the flex layout so the grid layout works. */
   @media (min-width: 1025px) {
-    .main-content.sidebar-open {
-      margin-left: 280px;
+    .main-content {
+      flex: 0 0 auto;
     }
   }
 
-  /* Sidebar Toggle Button - Compact & Smart */
+  /* Mobile / tablet: sidebar overlays, main content stays full-bleed */
+  @media (max-width: 1024px) {
+    .main-content {
+      margin-left: 0 !important;
+    }
+  }
+
+  /* Sidebar toggle */
   .sidebar-toggle {
     position: fixed;
-    top: 0.75rem;
-    z-index: 1001;
+    top: var(--space-3);
+    left: var(--space-3);
+    z-index: 40;
+    width: 40px;
+    height: 40px;
+    padding: 0;
     background: var(--card-bg);
     border: 1px solid var(--border-color);
-    border-radius: 50%;
-    width: 36px;
-    height: 36px;
-    padding: 0;
-    cursor: pointer;
+    border-radius: var(--radius-sm);
     color: var(--text-color);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    opacity: 0.85;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    /* Compose translate + scale via custom property so both states coexist. */
+    --toggle-x: 0;
+    --toggle-s: 1;
+    transform: translateX(var(--toggle-x)) scale(var(--toggle-s));
+    transition:
+      background var(--motion-fast) var(--ease-out),
+      color var(--motion-fast) var(--ease-out),
+      transform var(--motion-base) var(--ease-out);
   }
 
-  /* Position changes based on sidebar state on desktop */
+  /* On desktop, slide the toggle out of the way when sidebar is open */
   @media (min-width: 1025px) {
-    .sidebar-toggle {
-      left: 0.75rem;
-    }
-    
     .sidebar-toggle.sidebar-open {
-      left: calc(280px + 0.5rem);
-    }
-  }
-
-  /* On mobile/tablet always at left */
-  @media (max-width: 1024px) {
-    .sidebar-toggle {
-      left: 0.75rem;
+      --toggle-x: calc(var(--sidebar-width) - var(--space-3));
     }
   }
 
   .sidebar-toggle:hover {
     background: var(--hover-bg);
-    border-color: var(--primary-color);
-    transform: scale(1.08);
-    opacity: 1;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    color: var(--primary-color);
   }
 
   .sidebar-toggle:active {
-    transform: scale(0.92);
+    --toggle-s: 0.95;
   }
 
-  /* Subtle pulsing animation when sidebar is closed on desktop */
-  @media (min-width: 1025px) {
-    .sidebar-toggle:not(.sidebar-open) {
-      animation: subtlePulse 3s ease-in-out infinite;
+  /* On mobile, push the toggle a bit further so it doesn't hug the screen edge */
+  @media (max-width: 600px) {
+    .sidebar-toggle {
+      top: max(var(--space-3), env(safe-area-inset-top, 0));
+      left: max(var(--space-3), env(safe-area-inset-left, 0));
     }
-  }
-
-  @keyframes subtlePulse {
-    0%, 100% { opacity: 0.85; }
-    50% { opacity: 1; }
   }
 
   /* Backdrop for mobile */
   .backdrop {
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
     z-index: 999;
-    animation: fadeIn 0.2s;
+    animation: fadeIn var(--motion-base) var(--ease-out);
   }
 
   @keyframes fadeIn {
@@ -247,59 +239,56 @@
     }
   }
 
-  /* Desktop (>1024px) - Show toggle button always */
-  @media (min-width: 1025px) {
-    .sidebar-toggle {
-      display: flex;
-    }
-  }
-
-  /* Tablet (600-1024px) - Collapsible sidebar */
-  @media (max-width: 1024px) {
-    .sidebar-toggle {
-      display: flex;
-    }
-  }
-
-  /* Mobile (<600px) - Drawer sidebar */
-  @media (max-width: 600px) {
-    .main-content {
-      width: 100%;
-    }
-  }
-
-  /* FAB (Floating Action Button) */
+  /* Floating Action Button — quiet primary, no shadow stack, no scale */
   .fab {
     position: fixed;
-    bottom: 2rem;
-    right: 2rem;
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
+    right: calc(var(--space-4) + env(safe-area-inset-right, 0));
+    bottom: calc(var(--space-4) + env(safe-area-inset-bottom, 0));
+    min-width: 48px;
+    min-height: 48px;
+    height: 48px;
+    padding: 0 var(--space-4);
+    border-radius: var(--radius-pill);
     background: var(--primary-color);
-    color: white;
-    border: none;
-    font-size: 2rem;
+    color: #fff;
+    border: 1px solid var(--primary-color);
     cursor: pointer;
-    box-shadow: 0 4px 12px rgba(0, 122, 204, 0.4);
     z-index: 998;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.3s;
+    gap: var(--space-2);
+    font-family: inherit;
+    font-size: var(--font-size-base);
+    font-weight: 500;
+    transition: background var(--motion-fast) var(--ease-out);
   }
 
-    .fab:hover {
+  .fab::after {
+    content: 'New';
+    margin-left: 2px;
+  }
+
+  .fab:hover {
     background: var(--primary-hover);
-    transform: scale(1.1);
-    box-shadow: 0 6px 16px rgba(0, 122, 204, 0.6);
+    border-color: var(--primary-hover);
   }
 
   .fab:active {
-    transform: scale(0.95);
+    opacity: 0.85;
   }
 
-  /* Theme changing animation */
+  /* Hide the visible "New" label on very small screens; icon alone is fine. */
+  @media (max-width: 360px) {
+    .fab {
+      width: 48px;
+      padding: 0;
+    }
+    .fab::after {
+      content: '';
+    }
+  }
+
   :global(.app.theme-changing) {
     animation: themeTransition 0.4s ease;
   }

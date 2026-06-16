@@ -1,11 +1,10 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte'
+  import type { Component } from 'svelte'
   import { notesStore, uiStore } from './store.svelte'
   import { router } from './router'
-  import MarkdownPreview from './MarkdownPreview.svelte'
   import { noteService, type NoteMetadata } from './db'
   import EditorToolbar from './EditorToolbar.svelte'
-  import OutlineView from './OutlineView.svelte'
   import * as imageHandler from './ImageHandler.svelte'
   import * as commands from './editorCommands'
 
@@ -23,7 +22,29 @@
   let isDragging = $state(false)
   let showOutline = $state(false)
   let showToolbar = $state(true)
-  
+
+  // Lazy-loaded components (mermaid, markdown rendering, outline). Keeps
+  // the initial route bundle small — the editor mounts empty chrome first
+  // and these arrive on demand when the user enables them.
+  let MarkdownPreviewComp: Component<any> | null = $state(null)
+  let OutlineViewComp: Component<any> | null = $state(null)
+  let MermaidViewerComp: Component<any> | null = $state(null)
+
+  $effect(() => {
+    if ((previewMode || splitView) && !MarkdownPreviewComp) {
+      import('./MarkdownPreview.svelte').then((m) => {
+        MarkdownPreviewComp = m.default
+      })
+    }
+  })
+  $effect(() => {
+    if (showOutline && !OutlineViewComp) {
+      import('./OutlineView.svelte').then((m) => {
+        OutlineViewComp = m.default
+      })
+    }
+  })
+
   // Local content for instant preview update (no debounce delay)
   let localContent = $state('')
   
@@ -482,8 +503,8 @@
       role="application"
       aria-label="Note editor with drag and drop support"
     >
-      {#if previewMode}
-        <MarkdownPreview content={localContent} mode="full" />
+      {#if previewMode && MarkdownPreviewComp}
+        <MarkdownPreviewComp content={localContent} mode="full" />
         {:else if splitView}
           <!-- Split view: editor on left, preview on right, outline on far right -->
           <div class="split-container">
@@ -523,15 +544,14 @@
               bind:this={previewPane}
               onscroll={handlePreviewScroll}
             >
-              <MarkdownPreview content={localContent} mode="split" />
+              {#if MarkdownPreviewComp}
+                <MarkdownPreviewComp content={localContent} mode="split" />
+              {/if}
             </div>
-            {#if showOutline}
+            {#if showOutline && OutlineViewComp}
               <div class="split-divider"></div>
               <div class="split-pane outline-pane">
-                <OutlineView 
-                  content={localContent}
-                  onHeaderClick={handleHeaderClick}
-                />
+                <OutlineViewComp content={localContent} onHeaderClick={handleHeaderClick} />
               </div>
             {/if}
           </div>
@@ -564,12 +584,9 @@
 • Mermaid: ```mermaid
 • Lists: - bullet, 1. numbered, - [ ] task"
             ></textarea>
-            {#if showOutline}
+            {#if showOutline && OutlineViewComp}
               <div class="outline-sidebar">
-                <OutlineView 
-                  content={localContent}
-                  onHeaderClick={handleHeaderClick}
-                />
+                <OutlineViewComp content={localContent} onHeaderClick={handleHeaderClick} />
               </div>
             {/if}
           </div>

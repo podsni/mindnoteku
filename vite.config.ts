@@ -70,8 +70,34 @@ export default defineConfig({
       },
       devOptions: {
         enabled: true,
-        type: 'module'
-      }
-    })
+        type: 'module',
+      },
+    }),
   ],
+  build: {
+    target: 'es2020',
+    cssCodeSplit: true,
+    sourcemap: false,
+    rollupOptions: {
+      output: {
+        // Keep main bundle lean: heavy/optional subsystems go to their
+        // own chunks. The shell + note list + editor + theme load eagerly;
+        // markdown preview, mermaid, dropbox sync, image processing,
+        // and outline load lazily via dynamic import.
+        manualChunks: (id) => {
+          if (!id.includes('node_modules')) return undefined
+          if (id.includes('mermaid')) return 'mermaid'
+          if (id.includes('cytoscape')) return 'cytoscape'
+          if (id.includes('katex') || id.includes('mathjax') || id.includes('mathjs')) {
+            return 'math'
+          }
+          if (id.includes('idb') || id.includes('fake-indexeddb')) {
+            return 'storage'
+          }
+          return 'vendor'
+        },
+      },
+    },
+    chunkSizeWarningLimit: 600,
+  },
 })

@@ -220,11 +220,12 @@
 
   /* Blockquotes */
   .markdown-preview :global(blockquote) {
-    border-left: 4px solid var(--primary-color);
+    border-left: 2px solid var(--text-secondary);
     padding-left: 1rem;
     margin: 1rem 0;
     color: var(--text-secondary);
     font-style: italic;
+    opacity: 0.85;
   }
 
   /* Tables */
@@ -364,14 +365,14 @@
   }
 
   .markdown-preview :global(.math-error) {
-    color: #ff4444;
+    color: var(--text-secondary);
     font-style: italic;
-    background: rgba(255, 68, 68, 0.1);
-    padding: 0.5rem 0.75rem;
-    border-radius: 4px;
-    border-left: 3px solid #ff4444;
+    background: transparent;
+    padding: 0.25rem 0;
+    border-radius: 0;
+    border-bottom: 1px dashed var(--text-secondary);
     margin: 1rem 0;
-    display: block;
+    display: inline;
   }
 
   /* Mermaid diagrams */

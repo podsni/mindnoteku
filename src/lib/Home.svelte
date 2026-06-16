@@ -3,38 +3,23 @@
   import { router } from './router'
 
   const handleNewNote = async () => {
-    const id = await notesStore.createNote('New Note', '')
+    const id = await notesStore.createNote('Untitled', '')
     router.navigate(`/note/${id}`)
-    // Close sidebar on mobile after creating note
-    if (uiStore.isMobile) {
-      uiStore.closeSidebar()
-    }
+    if (uiStore.isMobile) uiStore.closeSidebar()
   }
 </script>
 
 <div class="home">
-  <div class="welcome">
-    <div class="icon">📝</div>
-    <h1>Welcome to MindNote</h1>
-    <p>A fast, offline-first note-taking app</p>
-    
-    <button onclick={handleNewNote} class="btn-start">
-      Create Your First Note
-    </button>
+  <div class="hero">
+    <h1 class="title">A quiet place to write</h1>
+    <p class="subtitle">
+      Your notes live on this device. No account, no cloud lock-in. Open a new
+      note, search anything you've written, or come back to where you left off.
+    </p>
 
-    <div class="features">
-      <div class="feature">
-        <span class="feature-icon">⚡</span>
-        <span>Lightning Fast</span>
-      </div>
-      <div class="feature">
-        <span class="feature-icon">📱</span>
-        <span>Offline Ready</span>
-      </div>
-      <div class="feature">
-        <span class="feature-icon">🔒</span>
-        <span>Local Storage</span>
-      </div>
+    <div class="actions">
+      <button class="btn" onclick={handleNewNote}>New note</button>
+      <a class="link" href="#/" aria-label="Browse existing notes">or browse</a>
     </div>
   </div>
 </div>
@@ -42,140 +27,93 @@
 <style>
   .home {
     flex: 1;
-    height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    height: 100%;
+    display: grid;
+    place-items: center;
+    padding: var(--space-6) var(--space-4);
+    overflow-y: auto;
     background: var(--bg-color);
-    transition: background-color 0.3s;
-    padding-left: 3.5rem; /* Space for toggle button */
   }
 
-  /* On mobile, reset padding */
-  @media (max-width: 1024px) {
-    .home {
-      padding-left: 0;
-    }
-  }
-
-  .welcome {
-    text-align: center;
-    max-width: 500px;
-    padding: 2rem;
-  }
-
-  .icon {
-    font-size: 5rem;
-    margin-bottom: 1rem;
-  }
-
-  .welcome h1 {
-    font-size: 2.5rem;
-    margin: 0 0 0.5rem 0;
-    color: var(--text-color);
-    transition: color 0.3s;
-  }
-
-  .welcome p {
-    font-size: 1.2rem;
-    color: var(--text-secondary);
-    margin: 0 0 2rem 0;
-    transition: color 0.3s;
-  }
-
-  .btn-start {
-    background: var(--primary-color);
-    color: white;
-    border: none;
-    padding: 1rem 2rem;
-    border-radius: 8px;
-    font-size: 1.1rem;
-    cursor: pointer;
-    transition: background 0.2s;
-    font-weight: 600;
-  }
-
-  .btn-start:hover {
-    background: var(--primary-hover);
-  }
-
-  .features {
-    display: flex;
-    gap: 2rem;
-    justify-content: center;
-    margin-top: 3rem;
-  }
-
-  .feature {
+  .hero {
+    width: 100%;
+    max-width: 32rem;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 0.5rem;
+    gap: var(--space-4);
+  }
+
+  .title {
+    font-size: var(--font-size-3xl);
+    font-weight: 500;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    margin: 0;
+    color: var(--text-color);
+    text-wrap: balance;
+  }
+
+  .subtitle {
+    font-size: var(--font-size-base);
+    line-height: 1.6;
     color: var(--text-secondary);
-    font-size: 0.9rem;
-    transition: color 0.3s;
+    margin: 0;
+    max-width: 36rem;
   }
 
-  .feature-icon {
-    font-size: 2rem;
+  .actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+    margin-top: var(--space-2);
   }
 
-  /* Mobile optimizations */
-  @media (max-width: 768px) {
-    .welcome {
-      padding: 1.5rem;
-    }
+  .btn {
+    appearance: none;
+    border: 1px solid var(--primary-color);
+    background: var(--primary-color);
+    color: #fff;
+    padding: var(--space-2) var(--space-4);
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    font-size: var(--font-size-base);
+    font-weight: 500;
+    line-height: 1;
+    cursor: pointer;
+    min-height: 40px;
+    transition:
+      background var(--motion-fast) var(--ease-out),
+      border-color var(--motion-fast) var(--ease-out);
+  }
 
-    .icon {
-      font-size: 4rem;
-    }
+  .btn:hover {
+    background: var(--primary-hover);
+    border-color: var(--primary-hover);
+  }
 
-    .welcome h1 {
-      font-size: 2rem;
-    }
+  .btn:active {
+    transform: translateY(1px);
+  }
 
-    .welcome p {
-      font-size: 1rem;
-    }
+  .link {
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: var(--font-size-base);
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-sm);
+    border: 1px solid transparent;
+  }
 
-    .btn-start {
-      padding: 0.875rem 1.5rem;
-      font-size: 1rem;
-    }
-
-    .features {
-      gap: 1.5rem;
-      margin-top: 2rem;
-    }
-
-    .feature {
-      font-size: 0.85rem;
-    }
-
-    .feature-icon {
-      font-size: 1.75rem;
-    }
+  .link:hover {
+    color: var(--text-color);
+    text-decoration: underline;
+    text-underline-offset: 3px;
   }
 
   @media (max-width: 600px) {
-    .welcome {
-      padding: 1rem;
-    }
-
-    .icon {
-      font-size: 3.5rem;
-    }
-
-    .welcome h1 {
-      font-size: 1.75rem;
-    }
-
-    .welcome p {
-      font-size: 0.95rem;
-    }
-
-    .features {
-      gap: 1rem;
+    .title {
+      font-size: var(--font-size-2xl);
     }
   }
 </style>

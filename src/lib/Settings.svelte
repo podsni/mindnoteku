@@ -2,10 +2,21 @@
   import ThemeSelector from './ThemeSelector.svelte'
   import FontSelector from './FontSelector.svelte'
   import ExportImport from './ExportImport.svelte'
-  import GoogleDriveSync from './GoogleDriveSync.svelte'
-  import DropboxSync from './DropboxSync.svelte'
+  import type { Component } from 'svelte'
+  import { onMount } from 'svelte'
 
   let isOpen = $state(false)
+  let DropboxComp: Component<any> | null = $state(null)
+
+  // Lazily import DropboxSync. It is large, optional, and a no-op without
+  // an API key — pulling it eagerly just bloats the initial bundle.
+  const dropboxConfigured = !!(import.meta.env.VITE_DROPBOX_APP_KEY as string | undefined)
+  onMount(() => {
+    if (!dropboxConfigured) return
+    import('./DropboxSync.svelte').then((m) => {
+      DropboxComp = m.default
+    })
+  })
 
   const toggleSettings = () => {
     isOpen = !isOpen
@@ -84,14 +95,11 @@
         <ExportImport />
       </div>
 
-      <!-- Google Drive Sync -->
+      <!-- Dropbox Sync (lazy-loaded, hidden until env var is set) -->
       <div class="settings-section">
-        <GoogleDriveSync />
-      </div>
-
-      <!-- Dropbox Sync -->
-      <div class="settings-section">
-        <DropboxSync />
+        {#if DropboxComp && dropboxConfigured}
+          <DropboxComp />
+        {/if}
       </div>
     </div>
   {/if}
