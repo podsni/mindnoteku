@@ -16,6 +16,7 @@
     "@types/node": "^24.6.2",
     "autoprefixer": "^10.4.21",
     "highlight.js": "^11.11.1",
+    "playwright": "^1.61.0",
     "postcss": "^8.5.6",
     "svelte": "^5.39.8",
     "svelte-check": "^4.3.2",

@@ -36,11 +36,18 @@
   }
 
   .hero {
-    width: 100%;
+    /* place-items: center on the grid centers the hero in both axes.
+       The `justify-self: center` here is what actually does the work —
+       the previous `width: 100%` rule made the cell fill horizontally
+       and the grid centering became invisible. Now the hero is sized by
+       its content up to max-width, then centered by the grid track. */
+    justify-self: center;
+    width: auto;
     max-width: 32rem;
     display: flex;
     flex-direction: column;
     gap: var(--space-4);
+    text-align: left;
   }
 
   .title {

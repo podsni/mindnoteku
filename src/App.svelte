@@ -62,12 +62,12 @@
   })
 </script>
 
-<div class="app" class:sidebar-open={uiStore.sidebarOpen && !uiStore.isMobile}>
+<div class="app" class:sidebar-open={uiStore.sidebarOpen}>
   <Sidebar />
 
   <button
     class="sidebar-toggle"
-    class:sidebar-open={uiStore.sidebarOpen && !uiStore.isMobile}
+    class:sidebar-open={uiStore.sidebarOpen}
     onclick={() => uiStore.toggleSidebar()}
     aria-label={uiStore.sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
     aria-expanded={uiStore.sidebarOpen}
@@ -204,6 +204,16 @@
     .sidebar-toggle {
       top: max(var(--space-3), env(safe-area-inset-top, 0));
       left: max(var(--space-3), env(safe-area-inset-left, 0));
+    }
+  }
+
+  /* When the sidebar is open on mobile, lift the toggle above the
+     backdrop so the user can tap it to close the drawer. Backdrop is
+     999, sidebar is 1000, so we sit at 1001 — just above the sidebar
+     so the toggle remains visible at the top-left corner of the page. */
+  @media (max-width: 1024px) {
+    .app.sidebar-open .sidebar-toggle {
+      z-index: 1001;
     }
   }
 

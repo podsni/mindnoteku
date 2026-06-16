@@ -674,6 +674,12 @@
 
   .header-actions {
     display: flex;
+    /* Push action buttons to the right on mobile. On desktop the row
+       becomes a single-line flex alongside the title, where each item
+       is its own flex child. justify-content:flex-end keeps the icon
+       strip tight against the right edge on narrow viewports instead
+       of leaving a dead zone on the right side of the title row. */
+    justify-content: flex-end;
     gap: 0.4rem;
     flex-wrap: nowrap;
     min-width: 0;
@@ -794,6 +800,7 @@
     display: flex;
     flex-direction: column;
     position: relative;
+    min-width: 0;
   }
 
   .editor-pane {
@@ -815,6 +822,35 @@
     flex-shrink: 0;
     overflow-y: auto;
     overflow-x: hidden;
+  }
+
+  /* Split view on phones: the three-pane row (editor + preview + outline)
+     would overflow a 375px viewport by 100+ pixels. Stack the panes
+     vertically with a divider so the user can still see the preview
+     below the editor without the writing area becoming a sliver. */
+  @media (max-width: 768px) {
+    .split-container {
+      flex-direction: column;
+    }
+    .split-pane {
+      flex: 1 1 auto;
+      min-height: 0;
+    }
+    .editor-pane {
+      flex: 1 1 60%;
+    }
+    .preview-pane {
+      flex: 1 1 40%;
+      border-top: 1px solid var(--border-color);
+    }
+    .outline-pane {
+      display: none;
+    }
+    /* Hide the horizontal dividers between panes — they only make sense
+       when panes are side-by-side. */
+    .split-divider {
+      display: none;
+    }
   }
 
   /* Edit container for single pane with optional outline */
@@ -854,6 +890,14 @@
 
   .split-divider:hover {
     background: var(--primary-color);
+  }
+
+  /* On phones the outline sidebar is 250px wide. Forcing it beside the
+     editor textarea would crush the writing area to ~125px on a 375px
+     screen — unusable. Hide it; users can use the desktop-only Outline
+     button on a wider screen, or scroll to headers manually. */
+  @media (max-width: 768px) {
+    .outline-sidebar { display: none; }
   }
 
   /* Drag and drop styles */
@@ -1057,6 +1101,10 @@
     }
 
     .editor-header {
+      /* The 3.4rem left padding leaves room for the floating 36×36
+         sidebar toggle (which sits at left:12 + width:36 = 48px ≈ 3rem)
+         plus a 6px gutter. The top padding respects the iPhone notch
+         via env(safe-area-inset-top). */
       padding: calc(env(safe-area-inset-top, 0px) + 0.4rem) 0.5rem 0.35rem 3.4rem;
       gap: 0.3rem;
     }
@@ -1074,6 +1122,7 @@
       max-width: 100%;
       gap: 0.25rem;
       padding-bottom: 0.125rem;
+      justify-content: flex-end;
     }
 
     .btn-icon {

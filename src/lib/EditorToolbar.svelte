@@ -205,7 +205,10 @@
   /* Edge-fade affordance: a position:absolute overlay pinned to the right
      edge of the the visible toolbar on mobile. The fade paints a dark
      gradient on top of the buttons so the last visible button appears
-     to fade out — telling the user there's more content to scroll to. */
+     to fade out — telling the user there's more content to scroll to.
+     The fade color uses the live theme bg (--bg-color) so it blends
+     cleanly in dark, light, typewriter, and glassmorphism themes
+     instead of stamping a hard black overlay. */
   @media (max-width: 768px) {
     .toolbar::after {
       content: '';
@@ -217,9 +220,9 @@
       pointer-events: none;
       background: linear-gradient(
         to right,
-        transparent,
-        rgba(0, 0, 0, 0.55) 60%,
-        rgba(0, 0, 0, 0.7) 100%
+        color-mix(in srgb, var(--bg-color) 0%, transparent),
+        color-mix(in srgb, var(--bg-color) 70%, transparent) 60%,
+        var(--bg-color) 100%
       );
     }
   }
