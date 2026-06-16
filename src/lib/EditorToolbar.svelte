@@ -381,4 +381,16 @@
       padding: 0.2rem 0.4rem;
     }
   }
+
+  /* Tablet range (769-1024) — bump icon button touch target to 36px.
+     The base rule is 34px and the mobile override (≤ 768) is 36px.
+     1024-landscape iPad and small tablets fall into this gap and
+     inherit the 34px base, which is below WCAG 2.5.5's 36px minimum
+     for fine pointer input. Force the larger target here. */
+  @media (min-width: 769px) and (max-width: 1024px) {
+    :global(.btn-icon) {
+      min-width: 36px;
+      min-height: 36px;
+    }
+  }
 </style>
